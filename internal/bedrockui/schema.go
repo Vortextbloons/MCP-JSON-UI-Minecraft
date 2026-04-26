@@ -5,10 +5,10 @@ import (
 	"strings"
 )
 
-const SchemaURI = "https://bedrock.dev/schema/ui/bedrock_ui.json"
+const SchemaURI = "bedrock://json-ui/schema.json"
 
 const schemaTemplate = `{
-  "$id": "https://bedrock.dev/schema/ui/bedrock_ui.json",
+  "$id": "bedrock://json-ui/schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Minecraft Bedrock JSON UI Document",
   "type": "object",
@@ -344,11 +344,12 @@ func rootElementPattern() string {
 func identifierPatternExcept(exact string) string {
 	runes := []rune(exact)
 	parts := make([]string, 0, len(runes)+2)
+	fullClass := allowedClassAll()
 
 	if len(runes) > 1 {
-		parts = append(parts, "[A-Za-z0-9_]{1,"+strconv.Itoa(len(runes)-1)+"}")
+		parts = append(parts, fullClass+"{1,"+strconv.Itoa(len(runes)-1)+"}")
 	}
-	parts = append(parts, "[A-Za-z0-9_]{"+strconv.Itoa(len(runes)+1)+",}")
+	parts = append(parts, fullClass+"{"+strconv.Itoa(len(runes)+1)+",}")
 
 	for i, r := range runes {
 		prefix := string(runes[:i])
@@ -357,13 +358,23 @@ func identifierPatternExcept(exact string) string {
 			parts = append(parts, prefix+allowedClassExcept(r))
 			continue
 		}
-		parts = append(parts, prefix+allowedClassExcept(r)+"[A-Za-z0-9_]{"+strconv.Itoa(suffixLen)+"}")
+		parts = append(parts, prefix+allowedClassExcept(r)+fullClass+"{"+strconv.Itoa(suffixLen)+"}")
 	}
 
 	return "^(?:" + strings.Join(parts, "|") + ")$"
 }
 
-var allowedIdentifierRunes = []rune("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_")
+var allowedIdentifierRunes = []rune("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_.@")
+
+func allowedClassAll() string {
+	var b strings.Builder
+	b.WriteByte('[')
+	for _, r := range allowedIdentifierRunes {
+		b.WriteRune(r)
+	}
+	b.WriteByte(']')
+	return b.String()
+}
 
 func allowedClassExcept(excluded rune) string {
 	var b strings.Builder

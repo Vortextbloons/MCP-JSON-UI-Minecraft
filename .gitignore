@@ -1,7 +1,3 @@
-# Ignore local documentation files
-"JSON Docs.txt"
-"TechDocs.txt"
-
 # Common Go and editor ignores
 /bin/
 /pkg/
