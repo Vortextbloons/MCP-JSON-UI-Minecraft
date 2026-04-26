@@ -1,0 +1,787 @@
+=== MINECRAFT BEDROCK JSON UI - FULL REFERENCE ===
+
+This document is a restructured compilation of the Minecraft Bedrock JSON UI engine documentation.
+Use this resource to author, validate, and iterate on Bedrock JSON UI files.
+
+================================================================================
+1. ELEMENT TYPES
+================================================================================
+
+Name               Description                                                         Allowed Property Groups
+------------------ ------------------------------------------------------------------  ------------------------------------
+panel              A container, like <div> in HTML                                      Control, Layout, Data Binding
+stack_panel        Like panel but stacks children by orientation                        Stack Panel, Collection, Control, Layout, Data Binding
+collection_panel   Like stack_panel, no orientation property                            Collection, Control, Layout, Data Binding
+grid               Grid of elements                                                     Grid, Collection, Control, Layout, Data Binding
+label              Text element                                                         Text, Control, Layout, Data Binding
+image              Sprite element. Draws a texture.                                     Sprite, Control, Layout, Data Binding
+input_panel        A panel that accepts input                                           Input, Focus, Sound, Control, Layout, Data Binding
+button             Button with 4 states: default, hover, pressed, locked                Button, Input, Focus, Sound, Control, Layout, Data Binding
+toggle             Toggle with 2 states (checked/unchecked); each has hover & locked    Toggle, Input, Focus, Sound, Control, Layout, Data Binding
+dropdown           A toggle for dropdown purposes                                       Dropdown, Toggle, Input, Focus, Sound, Control, Layout, Data Binding
+slider             Range input element                                                  Slider, Input, Focus, Sound, Control, Layout, Data Binding
+slider_box         The slider button/thumb                                              Slider Box, Input, Control, Layout, Data Binding
+edit_box           Text field (default: single-line)                                    Text Edit, Button, Input, Focus, Control, Layout, Data Binding
+scroll_view        Scrolling panel element                                              Scroll View, Input, Control, Layout, Data Binding
+scrollbar_track    The scrollbar track                                                  Input, Control, Layout
+scrollbar_box      The scrollbar thumb/draggable handle                                 Input, Control, Layout
+factory            An element generator                                                 Control, Layout
+screen             Screen element                                                       Screen, Control, Layout, Data Binding
+custom             Special renderer (too complex for JSON UI)                           Custom Render, Control, Layout, Data Binding
+selection_wheel                                                                         Selection Wheel, Input, Focus, Sound, Control, Layout, Data Binding
+
+--- Legacy Element Types (no longer work) ---
+tab, carousel_label, grid_item, scrollbar
+
+
+================================================================================
+2. COMMON PROPERTIES
+================================================================================
+
+--- 2a. Control Properties ---
+Property              Type              Default         Description
+--------------------- ----------------- --------------- -----------------------------------------------
+visible               boolean           true            Whether the UI element is visible
+enabled               boolean           true            If false, element & children enter locked state
+layer                 int               0               Z-index/layer (relative to parent)
+alpha                 float             1.0             Transparency (children unaffected)
+propagate_alpha       boolean           false           Apply alpha to children too
+clips_children        boolean           false           Clip children visually & interactively
+allow_clipping        boolean           true            Whether clips_children works
+clip_offset           Vector [x,y]      [0,0]           Offset for clipping start
+clip_state_change_event string                          Event name for clip state change
+enable_scissor_test   boolean                           OpenGL scissor test
+property_bag          object                            Data-related properties/variables
+selected              boolean                           Whether text box is selected by default
+use_child_anchors     boolean           false           Use child's anchor_from and anchor_to
+controls              array                             Array of child elements
+anims                 string[]                          Animation names
+disable_anim_fast_forward boolean
+animation_reset_name  string
+ignored               boolean           false           Whether element is ignored
+variables             array/object                      Conditions that change variable values
+modifications         array                             Modify UI files of resource packs below
+grid_position         Vector [row,col]                  Position inside a grid
+collection_index      int                               Index in a collection
+
+--- 2b. Layout Properties ---
+Property              Type              Default         Description
+--------------------- ----------------- --------------- -----------------------------------------------
+size                  Vector [w,h]      ["default","default"]  Size. Values: "default"(100%), N(px), "Npx", "N%", "N%c"(% of children total), "N%cm"(% of largest child), "N%sm"(% of sibling), "N%y"(% of element height), "N%x"(% of element width), "fill"(remaining space)
+max_size              Vector [w,h]      ["default","default"]  Maximum size
+min_size              Vector [w,h]      ["default","default"]  Minimum size
+offset                Vector [x,y]      [0,0]           Position relative to parent (top-left based). Values: N(px), "Npx", "N%"(parent), "N%x"(element width), "N%y"(element height)
+anchor_from           enum              center          Anchor point in the parent element
+anchor_to             enum              center          Anchor point in the element itself
+inherit_max_sibling_width  boolean      false           Use max sibling width
+inherit_max_sibling_height boolean     false           Use max sibling height
+use_anchored_offset   boolean
+contained             boolean
+draggable             enum                              Makes element draggable. Values: vertical, horizontal, both
+follows_cursor        boolean           false           Follows the cursor
+
+Anchor enum values: top_left, top_middle, top_right, left_middle, center, right_middle, bottom_left, bottom_middle, bottom_right
+
+Anchor_from is the anchor point in the parent element.
+Anchor_to is the anchor point in the element itself.
+The anchor_to point attaches to the anchor_from point.
+
+--- 2c. Data Binding Properties ---
+Property              Type                    Default    Description
+--------------------- ----------------------- ---------- --------------------------------------------------
+bindings              Vector of binding object            Bind and work with hardcoded values
+
+Data Binding Array Object:
+Property                Type        Default     Description
+----------------------- ----------- ----------- --------------------------------------------------
+ignored                 boolean     false       If binding should be ignored
+binding_type            enum                    Values: global, view, collection, collection_details, none
+binding_name            string                  Stores the data binding name or condition
+binding_name_override   string                  UI element property that will receive the stored value
+binding_collection_name string                  Name of the collection of items
+binding_collection_prefix string
+binding_condition       enum                    When to apply. Values: always, always_when_visible, visible, once, none, visibility_changed
+source_control_name     string                  Name of UI element to observe
+source_property_name    string                  Property value to observe on source_control_name
+target_property_name    string                  Property on this element to apply the value to
+resolve_sibling_scope   boolean                 If true, only allows sibling element selection
+
+--- 2d. Input Properties ---
+Property                          Type                      Description
+--------------------------------- ------------------------- -----------------------------------------------
+button_mappings                   Vector of mapping object
+modal                             boolean
+inline_modal                      boolean
+always_listen_to_input            boolean
+always_handle_pointer             boolean
+always_handle_controller_direction boolean
+hover_enabled                     boolean
+prevent_touch_input               boolean
+consume_event                     boolean
+consume_hover_events              boolean
+gesture_tracking_button           string
+
+Button Mapping Array Object:
+Property              Type        Default     Description
+--------------------- ----------- ----------- ------------------------------------------
+ignored               boolean     false       If mapping should be ignored
+from_button_id        string                  ID of action that fires the event
+to_button_id          string                  ID of action to execute
+mapping_type          enum                    Values: global, pressed, double_pressed, focused
+scope                 enum                    Values: view, controller
+input_mode_condition  enum                    Values: not_gaze, not_gamepad, gamepad_and_not_gaze
+ignore_input_scope    boolean
+consume_event         boolean
+handle_select         boolean
+handle_deselect       boolean
+button_up_right_of_first_refusal boolean
+
+--- 2e. Focus Properties ---
+Property                          Type        Description
+--------------------------------- ----------- -----------------------------------------------
+default_focus_precedence           int         Precedence for being selected when screen opens
+focus_enabled                      boolean     If arrow keys/controller can focus element
+focus_wrap_enabled                 boolean
+focus_magnet_enabled               boolean
+focus_identifier                   string      Focus identifier for this element
+focus_change_down                  string      Identifier of focusable element when button.menu_down
+focus_change_up                    string      Identifier of focusable element when button.menu_up
+focus_change_left                  string      Identifier of focusable element when button.menu_left
+focus_change_right                 string      Identifier of focusable element when button.menu_right
+focus_mapping                      array
+focus_container                    boolean
+use_last_focus                     boolean
+focus_navigation_mode_left/right/down/up  enum  Values: none, stop, custom, contained
+focus_container_custom_left/right/down/up  array of {other_focus_container_name, focus_id_inside}
+
+--- 2f. Sound Properties ---
+Property              Type        Description
+--------------------- ----------- -----------------------------------------------
+sound_name            string      Name of sound from RP/sounds/sound_definitions.json
+sound_volume          float       Volume
+sound_pitch           float       Pitch
+sounds                array       Array of {sound_name, sound_volume, sound_pitch, min_seconds_between_plays}
+
+--- 2g. Screen Properties ---
+Property                          Type        Description
+--------------------------------- ----------- -----------------------------------------------
+render_only_when_topmost           boolean     Only render if topmost screen in stack
+screen_not_flushable               boolean
+always_accepts_input               boolean
+render_game_behind                 boolean     Allow screens below to receive input
+absorbs_input                      boolean
+is_showing_menu                    boolean
+is_modal                           boolean     It is a modal screen
+should_steal_mouse                 boolean     Captures cursor and hides it
+low_frequency_rendering            boolean     Uses less memory
+screen_draws_last                  boolean     Last screen to be drawn
+vr_mode                            boolean
+force_render_below                 boolean     Render bottom screens below current
+send_telemetry                     boolean
+close_on_player_hurt               boolean     Close screen if player takes damage
+cache_screen                       boolean
+load_screen_immediately            boolean
+gamepad_cursor                     boolean
+gamepad_cursor_deflection_mode     boolean
+should_be_skipped_during_automation boolean
+
+--- 2h. TTS Properties ---
+Property                          Type        Description
+--------------------------------- ----------- -----------------------------------------------
+tts_name                           string
+tts_control_header                 string
+tts_section_header                 string
+tts_control_type_order_priority    integer
+tts_index_priority                 integer
+tts_toggle_on                      string      Used by toggle type
+tts_toggle_off                     string      Used by toggle type
+tts_override_control_value         string
+tts_inherit_siblings               boolean
+tts_value_changed                  string
+ttsSectionContainer                boolean
+tts_ignore_count                   boolean
+tts_skip_message                   boolean
+tts_value_order_priority           integer
+tts_play_on_unchanged_focus_control boolean
+tts_ignore_subsections             boolean
+text_tts                           string
+use_priority                       boolean     Use priority property for TTS order
+priority                           boolean     Order/index priority for TTS
+
+--- 2i. Variables Property ---
+Property              Type        Description
+--------------------- ----------- -----------------------------------------------
+requires              string      Condition determining if variable values are applied. Accepts $variables, not #bindings.
+variables             object/array Conditions that modify $variable values.
+
+Usage:
+Single condition: "variables": { "requires": "$condition", "$var": value }
+Multiple: "variables": [ { "requires": "$condition", "$var": value }, ... ]
+
+$var can be used in any property value by referencing $varname.
+Default values: "$varname|default": value
+
+
+================================================================================
+3. ELEMENT-SPECIFIC PROPERTIES
+================================================================================
+
+--- 3a. Stack Panel ---
+Property              Type        Default     Description
+--------------------- ----------- ----------- -----------------------------------------------
+orientation           enum        vertical    Direction of stacking. Values: vertical, horizontal
+
+--- 3b. Grid ---
+Property                  Type          Default     Description
+------------------------- ------------- ----------- -----------------------------------------------
+grid_dimensions           Vector [c,r]              Number of columns and rows
+maximum_grid_items        int                       Maximum items the grid will generate
+grid_dimension_binding    string                    Binding name for grid dimensions
+grid_rescaling_type       enum                      Values: vertical, horizontal, none
+grid_fill_direction       enum                      Values: vertical, horizontal, none
+grid_item_template        string                    Element capable of handling collections
+precached_grid_item_count int
+
+--- 3c. Text / Label ---
+Property                  Type          Default     Description
+------------------------- ------------- ----------- -----------------------------------------------
+text                      string                    Text content
+color                     Vector [r,g,b] [1,1,1]    Text color (0.0-1.0)
+locked_color              Vector [r,g,b]            Text color when parent is disabled
+shadow                    boolean       false       Text shadow
+hide_hyphen               boolean       false       Hide hyphen from word breaking
+notify_on_ellipses        string[]                  Controls to notify when text gets ellipses
+enable_profanity_filter   boolean       false       Censor "bad" words
+locked_alpha              float                     Alpha when parent is disabled
+font_size                 enum          normal      Values: small, normal, large, extra_large
+font_scale_factor         float         1.0         Scale of text
+localize                  boolean       false       If text can be translated
+line_padding              number                    Space between lines
+font_type                 enum          default     Values: default, rune, unicode, smooth, MinecraftTen (or custom)
+backup_font_type          enum          default     Fallback font
+text_alignment            enum                      Aligns based on anchor_from and anchor_to
+
+--- 3d. Sprite / Image ---
+Property                    Type                Default             Description
+--------------------------- ------------------- ------------------- -----------------------------------------------
+texture                     string                                  Image path from pack root (e.g. "textures/ui/White")
+allow_debug_missing_texture boolean             true                Display missing_texture if not found
+uv                          Vector [u,v]                            Start position of texture mapping
+uv_size                     Vector [w,h]                            Size of texture mapping
+texture_file_system         enum                InUserPackage       Values: InUserPackage, InAppPackage, RawPath, etc.
+nineslice_size              int or Vector [x0,y0,x1,y1]             9-slice values
+tiled                       boolean/enum        false               Whether texture tiles. Values: true, false, x, y
+tiled_scale                 Vector [sX,sY]      false               Scale of tile textures
+clip_direction              enum                                    Start for clip_ratio. Values: left, right, up, down, center
+clip_ratio                  float                                    How much to clip (0.0-1.0)
+clip_pixelperfect           boolean                                 Pixel-accurate clipping
+keep_ratio                  boolean             true                Keep aspect ratio when resizing
+bilinear                    boolean             false               Use bilinear filtering
+fill                        boolean             false               Stretch image to size
+grayscale                   boolean             false               Render in black and white
+force_texture_reload        boolean                                 Reload image when texture path changes
+base_size                   Vector [w,h]                            Base size for scaling
+
+--- 3e. Button ---
+Property              Type        Description
+--------------------- ----------- -----------------------------------------------
+default_control       string      Child control displayed in default state
+hover_control         string      Child control displayed in hover state
+pressed_control       string      Child control displayed in pressed state
+locked_control        string      Child control displayed in locked state
+
+--- 3f. Toggle ---
+Property                          Type        Description
+--------------------------------- ----------- -----------------------------------------------
+radio_toggle_group                 boolean
+toggle_name                        string      Identifier for the toggle group
+toggle_default_state               boolean
+toggle_group_forced_index          int         Index of toggle in its group
+toggle_group_default_selected      int         Index of default toggle
+reset_on_focus_lost                boolean
+toggle_on_hover                    string
+toggle_on_button                   string
+toggle_off_button                  string
+enable_directional_toggling        boolean
+toggle_grid_collection_name        string      Collection the toggle belongs to
+checked_control                    string      Child control for checked state
+unchecked_control                  string      Child control for unchecked state
+checked_hover_control              string
+unchecked_hover_control            string
+checked_locked_control             string
+unchecked_locked_control           string
+checked_locked_hover_control       string
+unchecked_locked_hover_control     string
+
+--- 3g. Dropdown ---
+Property                  Type        Description
+------------------------- ----------- -----------------------------------------------
+dropdown_name              string      Identifier for the dropdown
+dropdown_content_control   string      Child control serving as root content panel
+dropdown_area              string      Child control serving as inside content
+
+--- 3h. Text Edit / Edit Box ---
+Property                          Type        Default     Description
+--------------------------------- ----------- ----------- -----------------------------------------------
+text_box_name                      string                  Identifier for text box
+text_edit_box_grid_collection_name string                  Collection the edit_box belongs to
+constrain_to_rect                  boolean
+enabled_newline                    boolean                 Allow multiline text
+text_type                          enum                    Values: ExtendedASCII, IdentifierChars, NumberChars
+max_length                         int                     Maximum characters allowed
+text_control                       string                  Child control for displaying text
+place_holder_control               string                  Child control for placeholder text
+can_be_deselected                  boolean
+always_listening                   boolean
+virtual_keyboard_buffer_control    string
+
+--- 3i. Slider ---
+Property                          Type        Description
+--------------------------------- ----------- -----------------------------------------------
+slider_track_button                string      Action ID for slider track
+slider_small_decrease_button       string      Action ID for decrease
+slider_small_increase_button       string      Action ID for increase
+slider_steps                       int         Number of steps/values
+slider_direction                   enum        Values: vertical, horizontal
+slider_timeout                     number
+slider_collection_name             string      Collection the slider belongs to
+slider_name                        string      Identifier for the slider
+slider_select_on_hover             boolean     Focus slider when hovered
+slider_selected_button             string      Action ID when selected
+slider_deselected_button           string      Action ID when deselected
+slider_box_control                 string      Child control for slider thumb
+background_control                 string      Child control for slider background
+background_hover_control           string      Background on hover
+progress_control                   string      Background overlay for progress
+progress_hover_control             string      Progress on hover
+
+--- 3j. Slider Box ---
+Property              Type        Description
+--------------------- ----------- -----------------------------------------------
+default_control       string      Child for default state
+hover_control         string      Child for hover state
+locked_control        string      Child for locked state
+
+--- 3k. Scroll View ---
+Property                          Type        Description
+--------------------------------- ----------- -----------------------------------------------
+scrollbar_track_button             string      Action ID for track button
+scrollbar_touch_button             string      Action ID for touch input
+scroll_speed                       number      Scrolling speed
+gesture_control_enabled            boolean
+always_handle_scrolling            boolean
+touch_mode                         boolean
+scrollbar_box                      string      Child element for scrollbar thumb
+scrollbar_track                    string      Child element for scrollbar track
+scroll_view_port                   string      Child element for view port
+scroll_content                     string      Child element for content root
+scroll_box_and_track_panel         string      Container for scroll and track controls
+jump_to_bottom_on_update           boolean     Jump to bottom on update
+
+--- 3l. Custom Render ---
+Property              Type        Description
+--------------------- ----------- -----------------------------------------------
+renderer              enum        Renderer type. See renderer list below.
+
+Custom Renderers:
+flying_item_renderer, inventory_item_renderer, credits_renderer, vignette_renderer,
+name_tag_renderer, paper_doll_renderer, debug_screen_renderer, enchanting_book_renderer,
+gradient_renderer, live_horse_renderer, live_player_renderer, hud_player_renderer,
+hotbar_renderer, hotbar_cooldown_renderer, heart_renderer, horse_heart_renderer,
+armor_renderer, horse_jump_renderer, hunger_renderer, bubbles_renderer,
+mob_effects_renderer, cursor_renderer, equipment_preview_renderer,
+progress_indicator_renderer, camera_renderer, web_view_renderer,
+banner_pattern_renderer, actor_portrait_renderer, trial_time_renderer,
+progress_bar_renderer, 3d_structure_renderer, splash_text_renderer,
+hover_text_renderer, ui_holo_cursor, panorama_renderer
+
+--- 3m. Selection Wheel ---
+Property                    Type        Description
+--------------------------- ----------- -----------------------------------------------
+inner_radius                number
+outer_radius                number
+state_controls              string[]
+slice_count                 integer
+button_name                 string
+iterate_left_button_name    string
+iterate_right_button_name   string
+initial_button_slice        integer
+
+--- 3n. Collection ---
+Property              Type        Description
+--------------------- ----------- -----------------------------------------------
+collection_name       string      Name of the collection to be used
+
+--- 3o. Legacy Elements ---
+Tab: tab_index, tab_group, tab_control
+Carousel Text: always_rotate, rotate_speed, hover_color, hover_alpha, pressed_color, pressed_alpha
+
+
+================================================================================
+4. HARDCODED HYPERLINKS
+================================================================================
+
+These are the only valid URLs for #hyperlink:
+http://education.minecraft.net/eula
+http://pocketbeta.minecraft.net/p/how-to-join-and-leave-beta.html
+http://aka.ms/minecraftrealmsfb
+http://aka.ms/minecraftrealmsterms
+http://aka.ms/minecraftfb
+http://aka.ms/minecraftedusupport
+https://aka.ms/blockxboxmessages
+http://aka.ms/minecraftfbbeta
+https://minecraft.net/attribution
+http://aka.ms/mcedulogs
+https://minecraft.net/licensed-content/
+https://education.minecraft.net/eula
+https://aka.ms/mcedulogs
+https://aka.ms/minecraftrealmsterms
+https://aka.ms/minecraftfb
+https://aka.ms/minecraftfbbeta
+https://aka.ms/minecraftedusupport
+https://itunes.apple.com/us/app/minecraft/id479516143?mt=8
+https://account.xbox.com/Settings
+https://aka.ms/meeterms
+https://aka.ms/privacy
+https://aka.ms/MCBanned
+https://aka.ms/MCMultiplayerHelp
+https://aka.ms/meeeula
+https://aka.ms/mee_privacy
+https://www.minecraft.net/attribution/?hideChrome
+https://aka.ms/switchattribution
+https://www.minecraft.net/licensed-content/?hideChrome
+https://aka.ms/switchcontent
+https://social.xbox.com/changegamertag
+
+#hyperlink does NOT accept custom URLs. Only the URLs listed above will work.
+
+
+================================================================================
+5. HARDCODED BUTTON IDS
+================================================================================
+
+--- General Button IDs ---
+button.menu_exit, button.menu_cancel, button.menu_inventory_cancel, button.menu_ok,
+button.menu_select, button.controller_select, button.menu_secondary_select,
+button.controller_secondary_select, button.controller_secondary_select_left,
+button.controller_secondary_select_right, button.controller_start,
+button.menu_up, button.menu_down, button.menu_left, button.menu_right,
+button.menu_tab_left, button.menu_tab_right, button.menu_alternate_tab_left,
+button.menu_alternate_tab_right, button.menu_autocomplete, button.menu_autocomplete_back,
+button.controller_autocomplete, button.controller_autocomplete_back,
+button.menu_textedit_up, button.menu_textedit_down,
+button.controller_textedit_up, button.controller_textedit_down,
+button.menu_auto_place, button.menu_inventory_drop, button.menu_inventory_drop_all,
+button.menu_clear, button.chat, button.mobeffects, key.emote,
+button.slot1 through button.slot9, button.slot0,
+button.inventory_right, button.inventory_left,
+button.scoreboard, button.hide_gui, button.hide_tooltips, button.hide_paperdoll,
+button.menu_vr_realign, any
+
+--- Screen-Specific Button IDs ---
+Settings: button.open_content_log_history, button.clear_content_log_files,
+          button.clear_msa_token_button, button.terms_and_conditions_popup,
+          button.credits, button.unlink_msa, button.attribute_popup,
+          button.licensed_content, button.font_license, button.tos_hyperlink,
+          button.privpol_hyperlink, button.tos_popup, button.privpol_popup,
+          button.binding_button, button.reset_binding, button.reset_keyboard_bindings,
+          button.view_account_errors
+
+Book: button.prev_page, button.next_page, button.book_exit
+Chat: button.send, button.chat_autocomplete, button.chat_autocomplete_back,
+      button.chat_previous_message, button.chat_next_message, button.chat_menu_cancel
+Command Block: command_block.input_minimize, button.chat_autocomplete, button.chat_autocomplete_back
+Emote: button.rebind_mode, button.dressing_room, button.emote_selected,
+       button.select_emote_slot_0 through _3, button.iterate_selection_left, _right
+Game Menu: button.to_profile_or_skins_screen, button.player_profile_card,
+           button.menu_continue, button.menu_server_store, button.screenshot,
+           button.menu_how_to_play, button.menu_feedback, button.menu_permission,
+           button.menu_invite_players, button.menu_quit, button.menu_feed
+Anvil: button.anvil_take_all_place_all, button.anvil_coalesce_stack
+Grindstone: button.grindstone_take_all_place_all, button.grindstone_coalesce_stack
+Loom: button.loom_result_take_all_place_all, button.pattern_select
+Villager Trade: button.cycle_recipe_left, button.cycle_recipe_right,
+                button.trade_take_all_place_all, button.trade_take_half_place_one,
+                button.trade_coalesce_stack
+Play Screen: button.menu_sign_in_to_view_realms, button.menu_start_local_world,
+             button.menu_network_add_friend, button.menu_network_join_by_code,
+             button.menu_quick_play, button.menu_local_world_create,
+             button.create_on_realms_button, button.menu_import_level,
+             button.menu_realm_world_trial, and many more.
+
+Others: button.try_menu_exit, button.menu_play, button.menu_store,
+        button.menu_achievements, button.menu_settings, button.signin,
+        button.menu_skins, button.to_profile_screen, button.menu_courses,
+        button.menu_tutorial, button.featured_world, button.switch_accounts,
+        button.hotbar_inventory_button, button.select_offer,
+        button.action_button, button.create_realm, button.hotbar_select,
+        button.hotbar_ok, button.container_take_all_place_all,
+        button.container_take_half_place_one, button.container_auto_place,
+        button.coalesce_stack, button.search_bar_clear,
+        button.drop_one, button.drop_all, button.text_edit_box_selected,
+        button.text_edit_box_clear, button.help, button.menu_open_uri,
+        button.copy_to_clipboard, and many more screen-specific variants.
+
+
+================================================================================
+6. HARDCODED COLLECTION NAMES
+================================================================================
+
+Book: book_pages, pick_collection
+Chat: auto_complete, font_colors, host_main_collection, players_collection,
+      host_teleport_collection, host_time_collection, host_weather_collection
+Choose Realm: realms_collection
+Pause: players_collection
+Settings: keyboard_standard_collection, keyboard_full_collection, gamepad_collection,
+          languages, realms_plus_subscriptions_collection,
+          additional_realms_subscriptions_collection, experimental_toggles
+Anvil: anvil_input_items, anvil_material_items, anvil_result_items
+Beacon: beacon_payment_items
+Brewing Stand: brewing_fuel_item, brewing_input_item, brewing_result_items
+Cartography Table: cartography_input_items, cartography_additional_items, cartography_result_items
+Enchanting Table: enchanting_input_items, enchanting_lapis_items
+Furnace: furnace_ingredient_items, furnace_fuel_items, furnace_output_items
+Grindstone: grindstone_input_items, grindstone_additional_items, grindstone_result_items
+Horse: horse_equip_items
+Inventory: armor_items, offhand_items, crafting_input_items, crafting_output_items, recipe_book
+Loom: loom_input_items, loom_dye_items, loom_material_items, loom_result_items, patterns
+Smithing Table: smithing_table_input_items, smithing_table_material_items, smithing_table_result_items
+Stonecutter: stonecutter_input_items, stonecutter_result_items, stones
+Villager Trade 2: trade2_ingredient1_item, trade2_ingredient2_item, trade2_result_item,
+                  trade_item_1, trade_item_2, sell_item, trades, trade_tiers
+Mob Effects: mob_effects_collection
+Persona: color_collection, skin_pack_in_grid_item, emote_collection,
+         category_featured_collection, main_featured_collection, etc.
+Play: friends_network_worlds, cross_platform_friends_network_worlds,
+      lan_network_worlds, personal_realms, friends_realms, servers_network_worlds,
+      local_worlds, legacy_worlds, etc.
+Realms Settings: additional_realms_subscriptions_collection, realms_branch_collection,
+                 realms_backup_collection, members_collection, invited_friends_collection,
+                 uninvited_friends_collection, blocked_players_collection
+
+
+================================================================================
+7. HARDCODED BINDING NAMES (PROPERTY BAG)
+================================================================================
+
+--- Renderer-specific ---
+Binding Name                    Type        Renderer(s)                     Notes
+------------------------------- ----------- ------------------------------ --------------------------------
+#filtered_light_multiplier      float       inventory_item_renderer        Lighting data
+#banner_patterns                 string      inventory_item_renderer
+#banner_colors                   string      inventory_item_renderer
+#item_id_aux                     int         inventory_item_renderer        Item metadata for block display
+#item_custom_color               int         inventory_item_renderer        Dyed leather armor color ID
+#disabled_filter_visible         boolean     inventory_item_renderer
+#item_pickup_time                float       inventory_item_renderer
+#look_at_cursor                  boolean     hud_player_renderer
+entity_type                      enum        paper_doll_renderer            Values: player, npc
+#player_uuid                     string      paper_doll_renderer
+#skin_rotation                   boolean     paper_doll_renderer
+#custom_rot_y                    float       paper_doll_renderer
+#progress_bar_visible            boolean     paper_doll_renderer
+#progress_bar_total_amount       float       progress_bar_renderer          Max progress
+#progress_bar_current_amount     float       progress_bar_renderer          Current progress
+is_durability                    boolean     progress_bar_renderer
+round_value                      boolean     progress_bar_renderer
+#hover_text                      string      hover_text_renderer            Tooltip string
+#open                            boolean     enchanting_book_renderer       State of UI view
+flying_item_count                int         flying_item_renderer
+flying_item_id_aux               int         flying_item_renderer
+flying_item_custom_color         int         flying_item_renderer
+#playername                      string      name_tag_renderer              Player display name
+#entity_id                       string/int  live_horse_renderer
+#hyperlink                       string      button                          Must be from hardcoded URLs
+#anchored_offset_value_x/y       number      use_anchored_offset
+#has_focus                       boolean     3d_structure_renderer
+#block_position                  Vector      3d_structure_renderer
+
+--- Type-specific ---
+Binding Name                    Type        Element Type        Notes
+------------------------------- ----------- ------------------- -------------------------------
+#slider_steps                    number      slider              Step count configuration
+#slider_value                    number      slider              Current float value
+#property_field                  string      edit_box            Bind input content
+#hover_slice                     int         selection_wheel
+#toggle_state                    boolean     toggle              Checked state
+#text                            string      label               Standard text injection
+#visible                         boolean     any                 Control element visibility
+#using_ellipses                  boolean     label               Text cut off by wrapping
+#color                           Vector      any                 Item rarity color
+#start_selected                  boolean
+#tts_dialog_title                string
+#tts_dialog_body                 string
+force_update                     boolean
+#sub_command                     string
+#panel_title                     string
+#index                           int
+#collection_prefix               string
+#collection_name                 string
+reset_group                      enum        Values: video, audio, accessibility
+#should_host                     boolean
+is_local                         boolean
+#is_left                         boolean
+#is_skins                        boolean
+#is_featured                     boolean
+#image_name                      string
+#is_dropdown                     boolean      
+
+--- Screen-specific Binding Names ---
+Account Transfer Error: #error_title_text, #error_number_label, #error_number, #correlation_id
+Add External Server: #play_button_enabled/disabled, #save_button_enabled/disabled
+Authentication: #sign_in_visible, #authentication_message, #confirm_button_enabled,
+                #edu_store_visible, #popup_text, #eula_visible, etc.
+Book: #screenshot_path, #is_photo_page, #is_text_page, #page_number,
+      #title_text_box_item_name, #author_editable, #editable, #viewing,
+      #signing, #picking, #exporting, #close_button_visible, etc.
+Chat: #keyboard_being_use, #send_button_visible, #chat_visible,
+      #message_text_box_content, #auto_complete_item, #chat_title_text, etc.
+Command Block: #maximized_input_visible, #command_impulse_mode, #command_chain_mode,
+               #command_repeat_mode, #command_conditional_mode, #command_text_edit,
+               #command_output_text, #minimize_button_visible_binding_name, etc.
+Death: #death_reason_text, #respawn_visible, #quit_enabled/visible, #buttons_and_deathmessage_visible
+Settings: #selected_pack_items_global, #available_pack_items_global, and many more (see original).
+Loom: #pattern_cell_background_texture, #container_cell_background_texture, #banner_patterns, #banner_colors
+Stonecutter: #stone_cell_background_texture, #container_cell_background_texture, etc.
+Villager Trade 2: #name_label, #trade_cell_background_texture, #trade_toggle_state,
+                  #trade_tier_total, #has_second_buy_item, #item_valid, etc.
+
+--- Common Binding Names (non-screen-specific) ---
+#title_text, #body_text, #hover_text, #cross_out_icon,
+#is_left_tab_inventory, #selected_hover_text
+#tts_dialog_body, #button_enabled, #using_touch, #close_button_visible
+
+
+================================================================================
+8. SETTINGS: SLIDERS & TOGGLES
+================================================================================
+
+--- Sliders ---
+Name                    Slider Name                      Value Binding                     Enabled Binding
+----------------------- -------------------------------- -------------------------------- -------------------------------
+Brightness              gamma                            #gamma                            #gamma_enabled
+HUD Opacity             interface_opacity                #interface_opacity                #interface_opacity_enabled
+Field of View           field_of_view                    #field_of_view                    #field_of_view_enabled
+
+--- Toggles ---
+Name                                    Toggle Name                          State Binding
+--------------------------------------- ------------------------------------ ---------------------------------
+Invert Y Axis (Mouse)                   keyboard_mouse_invert_y_axis         #keyboard_mouse_invert_y_axis
+Auto Jump (Mouse)                       keyboard_mouse_autojump              #keyboard_mouse_autojump
+Fullscreen                              full_screen                          #full_screen
+Hide Hand                               hide_hand                            #hide_hand
+Screen Animations                       screen_animations                    #screen_animations
+View Bobbing                            view_bobbing                         #view_bobbing
+Camera Shake                            camera_shake                         #camera_shake
+Fancy Leaves                            transparent_leaves                   #transparent_leaves
+Render Clouds                           render_clouds                        #render_clouds
+Smooth Lighting                         smooth_lighting                      #smooth_lighting
+Graphics (Fast/Fancy)                   graphics_toggle                      #graphics_toggle
+Hide Paperdoll                          hide_paperdoll                       #hide_paperdoll
+Hide HUD                                hide_hud                             #hide_hud
+Classic UI Profile                      #ui_profile_radio_classic            #ui_profile_radio_classic
+Pocket UI Profile                       #ui_profile_radio_pocket             #ui_profile_radio_pocket
+Outline Selection                       classic_box_selection                #classic_box_selection
+Show Players Names Ingame               ingame_player_names                  #ingame_player_names
+
+
+================================================================================
+9. ANIMATIONS
+================================================================================
+
+Animation Property      Type        Description
+----------------------- ----------- -----------------------------------------------
+anim_type               enum        Values: alpha, clip, color, flip_book, offset,
+                                     size, uv, wait, aseprite_flip_book
+duration                number      Time in seconds
+next                    string      Name of the next animation to play
+destroy_at_end          string
+play_event              string
+end_event               string
+start_event             string
+reset_event             string
+easing                  enum        linear, spring, in_quad, out_quad, in_out_quad,
+                                     in_cubic, out_cubic, in_out_cubic, in_quart,
+                                     out_quart, in_out_quart, in_quint, out_quint,
+                                     in_out_quint, in_sine, out_sine, in_out_sine,
+                                     in_expo, out_expo, in_out_expo, in_circ, out_circ,
+                                     in_out_circ, in_bounce, out_bounce, in_out_bounce,
+                                     in_back, out_back, in_out_back, in_elastic,
+                                     out_elastic, in_out_elastic
+from                    any         Initial value of the animated property
+to                      any         Final value of the animated property
+fps                     int         Frames per second
+frame_count             int
+frame_step              number
+reversible              boolean     Run animation in reverse after completion
+activated               boolean
+initial_uv              Vector [u,v]
+scale_from_starting_alpha boolean
+
+
+================================================================================
+10. GLOBAL VARIABLES
+================================================================================
+
+Variable                            Notes
+----------------------------------- -----------------------------------------------
+$game_pad                           Controller connected
+$mouse                              Mouse connected
+$touch                              Touch input
+$trial                              Trial version of the game
+$build_platform_UWP                 Universal Windows Platform
+$console_edition                    Console platform
+$osx_edition                        macOS
+$pocket_edition                     Pocket UI
+$education_edition                  Education Edition
+$desktop_screen                     Classic UI selected
+$pocket_screen                      Pocket UI selected
+$is_holographic                     HoloLens
+$gear_vr                            Gear VR
+$oculus_rift                        Oculus Rift
+$is_living_room_mode                Living Room mode
+$is_reality_mode                    Reality mode
+$is_console                         Console device
+$can_quit                           Can quit the game
+$is_pregame                         Out-game screen (not in a world/server/realm)
+$is_desktop                         Desktop device
+$is_ps4                             PlayStation 4
+$is_berwick                         Nintendo Switch
+$is_ios                             iOS device
+$fire_tv                            Amazon Fire TV
+$xbox_one                           Xbox One
+$realms_beta                        Realms beta
+$pre_release                        Pre-release/dev version
+$is_publish                         Public/non-developer build
+$horizontal_safezone_size           Horizontal safe zone
+$vertical_safezone_size             Vertical safe zone
+$can_splitscreen                    Can display split screen
+$is_secondary_client                Secondary client
+$multiplayer_requires_live_gold     Multiplayer requires Xbox Live Gold
+$is_win10_arm                       Windows 10 on ARM
+$vibration_supported                Vibration supported
+$is_mobile_vr                       Mobile VR
+$is_xboxlive_enabled                Xbox Live enabled
+$store_disabled                     Store disabled
+
+
+================================================================================
+11. ITEM ID AUX REFERENCE
+================================================================================
+
+Item ID Aux formula: Aux = ID * 65536
+
+Name                 ID      Aux Value
+------------------- ------- -----------
+diamond              306     20054016
+emerald              519     34013184
+gold_ingot           308     20185088
+iron_ingot           307     20119552
+netherite_ingot      616     40370176
+banner               574     37617664
+saddle               373     24444928
+cartography_table    -200    -13107200
+chest                54      3538944
+crafting_table       58      3801088
+loom                 -204    -13369344
+stonecutter_block    -197    -12910592
