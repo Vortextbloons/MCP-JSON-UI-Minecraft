@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 
-	"mcp-server/internal/app"
+	"bedrock-json-ui-mcp/internal/app"
 )
 
 func main() {

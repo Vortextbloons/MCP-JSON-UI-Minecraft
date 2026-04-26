@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	mcp "github.com/metoro-io/mcp-golang"
-	"mcp-server/internal/bedrockui"
+	"bedrock-json-ui-mcp/internal/bedrockui"
 )
 
 const validatePreface = `📚 Resources: bedrock://docs/ui_reference (quick) | bedrock://docs/json_ui_full_reference (full) | bedrock://docs/custom_json_ui_design (implementation guide)

@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	mcp "github.com/metoro-io/mcp-golang"
-	"mcp-server/internal/bedrockui"
+	"bedrock-json-ui-mcp/internal/bedrockui"
 )
 
 func TestServerNew(t *testing.T) {

@@ -5,7 +5,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"mcp-server/internal/mcpserver"
+	"bedrock-json-ui-mcp/internal/mcpserver"
 )
 
 // Run starts the MCP server and blocks until an interrupt signal is received.

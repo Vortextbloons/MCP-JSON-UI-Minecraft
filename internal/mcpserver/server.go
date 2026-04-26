@@ -3,7 +3,7 @@ package mcpserver
 import (
 	mcp "github.com/metoro-io/mcp-golang"
 	"github.com/metoro-io/mcp-golang/transport/stdio"
-	"mcp-server/internal/bedrockui"
+	"bedrock-json-ui-mcp/internal/bedrockui"
 )
 
 const (

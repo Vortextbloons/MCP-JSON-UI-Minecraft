@@ -1,4 +1,4 @@
-module mcp-server
+module bedrock-json-ui-mcp
 
 go 1.26.2
 
