@@ -1,0 +1,81 @@
+=== CUSTOM FORM CONTROLS (MODAL FORM) REFERENCE ===
+
+Based on Leaf Essentials 4.3
+
+Modal forms use a factory with control_ids mapping on a stack_panel:
+  "generated_contents": {
+      "type": "stack_panel",
+      "factory": {
+          "name": "buttons",
+          "control_ids": {
+              "label":       "@namespace.custom_label",
+              "toggle":      "@namespace.custom_toggle",
+              "slider":      "@namespace.custom_slider",
+              "step_slider": "@namespace.custom_step_slider",
+              "dropdown":    "@namespace.custom_dropdown",
+              "input":       "@namespace.custom_input"
+          }
+      },
+      "collection_name": "custom_form",
+      "bindings": [
+          { "binding_name": "#custom_form_length", "binding_name_override": "#collection_length" }
+      ]
+  }
+
+Submit Button:
+  {
+      "type": "button",
+      "$pressed_button_name": "button.submit_custom_form",
+      "$button_text": "Submit"
+  }
+
+--- Control Definitions ---
+
+Label (custom_label):
+  Binds #custom_text for display text.
+  {
+      "type": "label",
+      "text": "#custom_text",
+      "bindings": [
+          { "binding_name": "#custom_text", "binding_type": "collection", "binding_collection_name": "custom_form" }
+      ]
+  }
+
+Toggle (custom_toggle):
+  Binds #custom_toggle_state and #custom_toggle_enabled.
+  {
+      "type": "toggle",
+      "toggle_name": "#custom_toggle",
+      "bindings": [
+          { "binding_name": "#custom_toggle_state", "binding_type": "collection", "binding_collection_name": "custom_form" },
+          { "binding_name": "#custom_toggle_enabled", "binding_type": "collection", "binding_collection_name": "custom_form" }
+      ]
+  }
+  $toggle_grid_collection_name: "custom_form"
+
+Slider (custom_slider):
+  Binds #custom_slider_value (float 0-1) and #custom_slider_enabled.
+  {
+      "type": "slider",
+      "slider_name": "#custom_slider",
+      "bindings": [
+          { "binding_name": "#custom_slider_value", "binding_type": "collection", "binding_collection_name": "custom_form" },
+          { "binding_name": "#custom_slider_enabled", "binding_type": "collection", "binding_collection_name": "custom_form" }
+      ]
+  }
+  $slider_collection_name: "custom_form"
+
+Step Slider (custom_step_slider):
+  Like slider but with #custom_slider_steps for discrete values.
+  #custom_slider_step_value for the current step.
+
+Dropdown (custom_dropdown):
+  Uses custom_dropdown_content with radio buttons.
+  #custom_dropdown_length for options count.
+  #custom_radio_text for option labels.
+  #custom_radio_toggled for selected state.
+
+Input (custom_input):
+  #custom_text for the label.
+  #custom_placeholder_text for placeholder.
+  #custom_input_text for the entered value.

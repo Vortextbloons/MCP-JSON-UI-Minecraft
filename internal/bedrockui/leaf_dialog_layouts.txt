@@ -1,0 +1,44 @@
+=== LEAF DIALOG LAYOUTS REFERENCE ===
+
+Based on Leaf Essentials 4.3 (common_template.json, namespaces: common_dialogs, common_dialogs_alt)
+
+Dialog Templates:
+  main_panel_no_buttons          — title + content area, no buttons
+  main_panel_one_button          — title + content + 1 bottom button
+  main_panel_two_buttons         — title + content + 2 bottom buttons
+  main_panel_three_buttons       — title + content + 3 bottom buttons
+  main_panel_small_title_one_button — compact title + 1 button
+  main_panel_no_title_no_buttons    — content only, no title or buttons
+
+Usage:
+  "my_form@common_dialogs.main_panel_no_buttons": {
+      "$title_panel": "common_dialogs.standard_title_label",
+      "$title_size": ["100% - 14px", 10],
+      "size": [370, 200],
+      "$text_name": "#title_text",
+      "$title_text_binding_type": "none",
+      "$child_control": "namespace.my_content_panel",
+      "$custom_background": "namespace.my_background"
+  }
+
+Key Variables:
+  $title_panel                   — title control reference
+  $title_size                    — title dimensions
+  $text_name                     — text binding or literal
+  $title_text_binding_type       — "none", "global", "collection"
+  $child_control                 — main content panel reference
+  $custom_background             — background override
+  $button1 / $button2 / $button3 — bottom button references (for multi-button dialogs)
+
+Background Types:
+  dialog_background_hollow_1 through dialog_background_hollow_6
+  dialog_background_opaque
+  fullscreen_background
+
+Screen Registration:
+  "third_party_server_screen@common.base_screen": {
+      "$screen_content": "namespace.main_content",
+      "button_mappings": [
+          { "from_button_id": "button.menu_cancel", "to_button_id": "button.menu_exit", "mapping_type": "global" }
+      ]
+  }

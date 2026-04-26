@@ -1,0 +1,99 @@
+=== BINDING PATTERNS REFERENCE ===
+
+Based on Leaf Essentials 4.3
+
+Binding Types:
+  global          — gets global data like #title_text, #form_text
+  collection      — gets data from a collection (factory-generated items)
+  collection_details — gets metadata (index) about current collection item
+  view            — transforms/processes values, string manipulation
+  none            — static, no binding
+
+Collection Binding (for buttons):
+  {
+      "binding_name": "#form_button_text",
+      "binding_type": "collection",
+      "binding_collection_name": "form_buttons"
+  }
+
+Collection Details:
+  {
+      "binding_type": "collection_details",
+      "binding_collection_name": "form_buttons"
+  }
+
+Global Binding:
+  {
+      "binding_type": "global",
+      "binding_name": "#title_text"
+  }
+
+View Binding — Visibility Toggle:
+  // Show if texture is NOT empty and NOT loading:
+  {
+      "binding_type": "view",
+      "source_property_name": "(not ((#texture = '') or (#texture = 'loading')))",
+      "target_property_name": "#visible"
+  }
+
+View Binding — String Contains Check:
+  // True when #form_button_text DOES contain §t§a§b:
+  {
+      "binding_type": "view",
+      "source_property_name": "(not ((#form_button_text - '§t§a§b') = #form_button_text))",
+      "target_property_name": "#visible"
+  }
+
+  // True when it does NOT contain §t§a§b:
+  "source_property_name": "((#form_button_text - '§t§a§b') = #form_button_text)"
+
+String Operation Syntax:
+  'str'                  — literal string
+  #var                   — reference binding variable
+  a - b                  — remove substring b from a
+  a = b                  — equals comparison (returns boolean)
+  not expr               — negation
+  (expr and expr)        — logical AND
+  (expr or expr)         — logical OR
+  '%.Ns' * str           — take first N characters of str
+
+Common Binding Names:
+  #title_text            — form title (global)
+  #form_text             — form body text (global)
+  #form_button_text      — button label text (collection)
+  #form_button_texture   — button icon texture path (collection)
+  #form_button_texture_file_system — texture filesystem type (collection)
+  #form_button_length    — number of buttons (collection length)
+  #visible               — toggle visibility
+  #enabled               — toggle enabled state
+  #texture               — texture path for images
+  #collection_length     — length of a collection
+  #custom_text           — modal form label text
+  #custom_toggle_state   — toggle boolean state
+  #custom_slider_value   — slider float value (0-1)
+  #custom_slider_steps   — step slider discrete values
+  #custom_dropdown_length — dropdown options count
+  #custom_radio_text     — dropdown option label
+  #custom_radio_toggled  — dropdown selected state
+  #custom_placeholder_text — input placeholder
+  #custom_input_text     — input value
+
+Factory Wiring:
+  // stack_panel or grid with factory:
+  "factory": { "name": "buttons", "control_name": "namespace.dynamic_button" }
+  "collection_name": "form_buttons"
+  "bindings": [ { "binding_name": "#form_button_length", "binding_name_override": "#collection_length" } ]
+
+  // Modal form factory with control_ids:
+  "factory": {
+      "name": "buttons",
+      "control_ids": {
+          "label": "@namespace.custom_label",
+          "toggle": "@namespace.custom_toggle",
+          "slider": "@namespace.custom_slider",
+          "step_slider": "@namespace.custom_step_slider",
+          "dropdown": "@namespace.custom_dropdown",
+          "input": "@namespace.custom_input"
+      }
+  }
+  "collection_name": "custom_form"

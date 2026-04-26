@@ -1,0 +1,46 @@
+=== LEAF BUTTON TEMPLATES REFERENCE ===
+
+Based on Leaf Essentials 4.3 (ui_template_buttons.json + starlib2/package_button/)
+
+Standard Text Button:
+  "my_button@common_buttons.light_text_button": {
+      "$pressed_button_name": "button.form_button_click",
+      "size": ["fill", 32],
+      "$button_text": "Click Me",
+      "$default_button_texture": "textures/ui/button_default",
+      "$hover_button_texture": "textures/ui/button_hover"
+  }
+
+Key Variables:
+  $pressed_button_name         — button ID sent when clicked
+  $button_text                 — text content or binding like #form_button_text
+  $button_text_binding_type    — "collection" when using #form_button_text
+  $button_text_grid_collection_name — "form_buttons"
+  $button_text_max_size        — max text size vector
+  $default_button_texture      — normal state texture
+  $hover_button_texture        — hover state texture
+  $pressed_button_texture      — pressed state texture
+  $locked_button_texture       — disabled state texture
+  $button_offset               — normal offset
+  $button_pressed_offset       — offset when pressed
+  $button_font_size            — "small", "normal", "large", "extra_large"
+  $button_font_scale_factor    — text scale multiplier
+  $default_button_alpha        — normal alpha
+  $default_hover_alpha         — hover alpha
+  $default_pressed_alpha       — pressed alpha
+
+Button Types:
+  light_text_button            — standard text button with states
+  light_content_button         — button with custom child content
+  light_glyph_button           — button with an icon/glyph
+  no_background_content_button — borderless text/content button
+
+StarLib2 Button Style:
+  "@starlib_pkg_button_templates.hover_button": {
+      "$HOVER_BUTTON_size": ["fill", "100%"],
+      "$BUTTON_STYLE_default_texture": "textures/example/button",
+      "$BUTTON_STYLE_default": "starlib_pkg_button_style.button_style_template2"
+  }
+
+State Child Controls:
+  Each button can define: default, hover, pressed, locked as child controls.
