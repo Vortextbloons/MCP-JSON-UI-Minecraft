@@ -89,7 +89,7 @@ Step 2 — Register UI Files (ui/_ui_defs.json):
   { "ui_defs": ["ui/my_custom_ui.json", "ui/server_form.json"] }
 
 Step 3 — Override server_form.json:
-  Copy vanilla server_form.json, then replace long_form's controls:
+  For a minimal global replacement, override long_form (this affects all action forms):
   {
     "namespace": "server_form",
     "long_form": {
@@ -99,7 +99,7 @@ Step 3 — Override server_form.json:
       ]
     }
   }
-  Use data bindings (e.g. binding to #title_text with binding_condition)
+  Use a named #title_text binding plus a view expression targeting #visible
   to show your panel only when form title matches a secret string.
 
 Step 4 — Trigger Script (scripts/main.js):
@@ -111,10 +111,22 @@ Best Practices:
   - Use percentage-based sizing on root panels (e.g. "size": ["100%", "100%"])
   - Set higher layer on interactive elements than background panels
   - List @minecraft/server and @minecraft/server-ui in BP manifest dependencies
-  - Bindings require binding_name; use binding_name_override to map to element props
-  - Container types (panel, stack_panel, grid) should have controls array for children
-  - Animations should be referenced via anims array, not placed as root elements
-  - Factory props are only valid on factory elements, not grids or panels`
+  - Named child definitions go inside controls: [{"child_name": {"type": "label"}}].
+  - Empty containers and containers populated by inheritance or factories are valid.
+  - View bindings use source_property_name and target_property_name; collection_details supplies item context without binding_name. Named global/collection bindings use binding_name.
+  - Define animations at the document root; reference @namespace.animation through anims or an animated property. $definitions is not an animation container.
+  - Collection containers can have a factory property; a factory element is a separate mechanism.
+  - binding_condition controls when data is refreshed. Use a view expression targeting #visible to select a form by title, and hide the vanilla layout for the same title.
+  - A new namespace does not register a screen. Inject it into server_form.main_screen_content through a factory named server_form_factory, or override the existing server_form screen.
+  - JSON UI belongs in the resource pack. Script form fields, labels, defaults and options come from the behavior pack's server-ui call.
+  - Passing the local schema does not establish engine compatibility. Test on the target Bedrock version with content logs enabled.
+
+Sources:
+  https://github.com/Mojang/bedrock-samples/blob/main/resource_pack/ui/server_form.json
+  https://wiki.bedrock.dev/json-ui/json-ui-intro
+  https://wiki.bedrock.dev/json-ui/json-ui-documentation
+  https://wiki.bedrock.dev/json-ui/modifying-server-forms
+  Leaf/StarLib and Cherry conventions are pack-specific dependencies, not engine APIs.`
 }
 
 // LeafButtonTemplates returns the Leaf button templates reference document.

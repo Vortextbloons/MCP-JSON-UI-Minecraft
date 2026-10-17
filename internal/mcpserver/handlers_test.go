@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	mcp "github.com/metoro-io/mcp-golang"
 	"bedrock-json-ui-mcp/internal/bedrockui"
+	mcp "github.com/metoro-io/mcp-golang"
 )
 
 func TestServerNew(t *testing.T) {
@@ -35,8 +35,8 @@ func TestValidateUIContractResponsePreface(t *testing.T) {
 	if !strings.Contains(text, "Validation Hints") {
 		t.Error("response missing validation hints section")
 	}
-	if !strings.Contains(text, "Container type 'panel' should include a 'controls' array") {
-		t.Error("response missing expected panel controls hint")
+	if !strings.Contains(text, "Success") {
+		t.Error("empty panel should pass")
 	}
 }
 

@@ -1,81 +1,35 @@
 === CUSTOM FORM CONTROLS (MODAL FORM) REFERENCE ===
 
-Based on Leaf Essentials 4.3
+JSON UI renders fields provided by the behavior pack's ModalFormData call.
+Labels, values, defaults and options are not created by declaring JSON UI templates.
+Source: https://github.com/Mojang/bedrock-samples/blob/main/resource_pack/ui/server_form.json
 
-Modal forms use a factory with control_ids mapping on a stack_panel:
-  "generated_contents": {
-      "type": "stack_panel",
-      "factory": {
-          "name": "buttons",
-          "control_ids": {
-              "label":       "@namespace.custom_label",
-              "toggle":      "@namespace.custom_toggle",
-              "slider":      "@namespace.custom_slider",
-              "step_slider": "@namespace.custom_step_slider",
-              "dropdown":    "@namespace.custom_dropdown",
-              "input":       "@namespace.custom_input"
-          }
-      },
-      "collection_name": "custom_form",
-      "bindings": [
-          { "binding_name": "#custom_form_length", "binding_name_override": "#collection_length" }
-      ]
-  }
+Prefer inheritance from server_form.custom_form, custom_form_panel,
+custom_form_scrolling_content and generated_contents to preserve scrolling and
+submission. The scrolling content instantiates generated_form and a submit button.
+A root submit_button definition alone does not display a button.
 
-Submit Button:
-  {
-      "type": "button",
-      "$pressed_button_name": "button.submit_custom_form",
-      "$button_text": "Submit"
-  }
+Factory mappings may reference these vanilla templates:
+label -> @server_form.custom_label
+toggle -> @server_form.custom_toggle
+slider -> @server_form.custom_slider
+step_slider -> @server_form.custom_step_slider
+dropdown -> @server_form.custom_dropdown
+input -> @server_form.custom_input
 
---- Control Definitions ---
+Example custom widget definition:
+"custom_toggle@server_form.custom_toggle": {}
 
-Label (custom_label):
-  Binds #custom_text for display text.
-  {
-      "type": "label",
-      "text": "#custom_text",
-      "bindings": [
-          { "binding_name": "#custom_text", "binding_type": "collection", "binding_collection_name": "custom_form" }
-      ]
-  }
+The generated_contents collection container uses a factory property named buttons,
+collection_name custom_form, and #custom_form_length mapped to #collection_length.
+Retain all mappings supported by the target game version when overriding it.
+Bare toggle/slider/edit_box types do not provide vanilla visuals and response wiring.
+$pressed_button_name and $button_text are template variables; a bare button needs
+actual button_mappings and child visuals, or inheritance from a button template.
 
-Toggle (custom_toggle):
-  Binds #custom_toggle_state and #custom_toggle_enabled.
-  {
-      "type": "toggle",
-      "toggle_name": "#custom_toggle",
-      "bindings": [
-          { "binding_name": "#custom_toggle_state", "binding_type": "collection", "binding_collection_name": "custom_form" },
-          { "binding_name": "#custom_toggle_enabled", "binding_type": "collection", "binding_collection_name": "custom_form" }
-      ]
-  }
-  $toggle_grid_collection_name: "custom_form"
+Do not add # to the vanilla toggle_name / slider_name identifiers. Names of engine
+bindings such as #custom_toggle_state do use #. For exact variable, binding and
+collection names, inspect the target game's vanilla server_form.json.
 
-Slider (custom_slider):
-  Binds #custom_slider_value (float 0-1) and #custom_slider_enabled.
-  {
-      "type": "slider",
-      "slider_name": "#custom_slider",
-      "bindings": [
-          { "binding_name": "#custom_slider_value", "binding_type": "collection", "binding_collection_name": "custom_form" },
-          { "binding_name": "#custom_slider_enabled", "binding_type": "collection", "binding_collection_name": "custom_form" }
-      ]
-  }
-  $slider_collection_name: "custom_form"
-
-Step Slider (custom_step_slider):
-  Like slider but with #custom_slider_steps for discrete values.
-  #custom_slider_step_value for the current step.
-
-Dropdown (custom_dropdown):
-  Uses custom_dropdown_content with radio buttons.
-  #custom_dropdown_length for options count.
-  #custom_radio_text for option labels.
-  #custom_radio_toggled for selected state.
-
-Input (custom_input):
-  #custom_text for the label.
-  #custom_placeholder_text for placeholder.
-  #custom_input_text for the entered value.
+Register custom UI files in the resource pack's ui/_ui_defs.json and wire them
+through server_form. A custom namespace by itself does not open a screen.

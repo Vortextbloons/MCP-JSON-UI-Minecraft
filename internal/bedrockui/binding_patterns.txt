@@ -1,9 +1,17 @@
 === BINDING PATTERNS REFERENCE ===
 
-Based on Leaf Essentials 4.3
+Core binding patterns; Leaf conventions remain pack-specific.
+Sources:
+https://github.com/Mojang/bedrock-samples/blob/main/resource_pack/ui/server_form.json
+https://wiki.bedrock.dev/json-ui/json-ui-intro
+
+Omitted binding_type is used by vanilla named global bindings. View and
+collection_details bindings do not require binding_name. A view expression can
+only read values already supplied in its scope; import #texture or
+#form_button_text first. These are JSONC fragments, not complete documents.
 
 Binding Types:
-  global          — gets global data like #title_text, #form_text
+  global          — gets screen data like #title_text, #form_text
   collection      — gets data from a collection (factory-generated items)
   collection_details — gets metadata (index) about current collection item
   view            — transforms/processes values, string manipulation

@@ -1,9 +1,9 @@
 package mcpserver
 
 import (
+	"bedrock-json-ui-mcp/internal/bedrockui"
 	mcp "github.com/metoro-io/mcp-golang"
 	"github.com/metoro-io/mcp-golang/transport/stdio"
-	"bedrock-json-ui-mcp/internal/bedrockui"
 )
 
 const (
@@ -26,22 +26,22 @@ var (
 	designResourceBlurb = "Complete implementation guide for custom JSON UI via the Server Form Hijack pattern, including architecture, components, steps, and best practices."
 
 	// New resources
-	leafButtonTemplatesResourceName   = "leaf_button_templates"
-	leafButtonTemplatesResourceBlurb  = "Leaf Essentials button template patterns including light_text_button, light_content_button, light_glyph_button, and StarLib2 styles."
-	leafDialogLayoutsResourceName     = "leaf_dialog_layouts"
-	leafDialogLayoutsResourceBlurb    = "Leaf Essentials dialog layout patterns including main_panel_no_buttons, main_panel_one_button, main_panel_two_buttons, and background types."
-	bindingPatternsResourceName       = "binding_patterns"
-	bindingPatternsResourceBlurb      = "Complete binding pattern reference: collection, view, global bindings with string operation syntax and factory wiring."
-	customFormControlsResourceName    = "custom_form_controls"
-	customFormControlsResourceBlurb   = "Modal form control definitions: label, toggle, slider, step_slider, dropdown, input with their binding names."
+	leafButtonTemplatesResourceName  = "leaf_button_templates"
+	leafButtonTemplatesResourceBlurb = "Leaf Essentials button template patterns including light_text_button, light_content_button, light_glyph_button, and StarLib2 styles."
+	leafDialogLayoutsResourceName    = "leaf_dialog_layouts"
+	leafDialogLayoutsResourceBlurb   = "Leaf Essentials dialog layout patterns including main_panel_no_buttons, main_panel_one_button, main_panel_two_buttons, and background types."
+	bindingPatternsResourceName      = "binding_patterns"
+	bindingPatternsResourceBlurb     = "Binding pattern examples: collection, view, global bindings with string operation syntax and factory wiring."
+	customFormControlsResourceName   = "custom_form_controls"
+	customFormControlsResourceBlurb  = "Modal form control definitions: label, toggle, slider, step_slider, dropdown, input with their binding names."
 
 	// New tools
 	generateActionFormToolName        = "generate_action_form"
-	generateActionFormToolDescription = "Generates a complete Minecraft Bedrock action form JSON UI with factory-based dynamic buttons, optional icon support, scrolling, and layout variants (default, fullscreen, grid, tabs, light)."
+	generateActionFormToolDescription = "Generates Minecraft Bedrock action form JSON UI templates and installation guidance with factory-based dynamic buttons, optional icon support, scrolling, and layout variants (default, fullscreen, grid, tabs, light)."
 	generateModalFormToolName         = "generate_modal_form"
-	generateModalFormToolDescription  = "Generates a complete Minecraft Bedrock modal form JSON UI with control_ids factory mapping for label, toggle, slider, step_slider, dropdown, and input controls."
+	generateModalFormToolDescription  = "Generates Minecraft Bedrock modal form JSON UI templates inheriting vanilla controls, with installation guidance and control_ids factory mapping for label, toggle, slider, step_slider, dropdown, and input controls."
 	generateTabbedFormToolName        = "generate_tabbed_form"
-	generateTabbedFormToolDescription = "Generates a tabbed action form JSON UI with tab-switching logic using §t§a§b markers and visibility bindings."
+	generateTabbedFormToolDescription = "Generates a tabbed action form layout sketch. Requires script-driven page selection; markers do not implement tab switching."
 	generateGridFormToolName          = "generate_grid_form"
 	generateGridFormToolDescription   = "Generates a grid-based action form JSON UI with configurable columns, rows, and optional icon support."
 	cherryThemePackToolName           = "cherry_theme_pack"
@@ -49,7 +49,7 @@ var (
 	analyzeBindingsToolName           = "analyze_bindings"
 	analyzeBindingsToolDescription    = "Analyzes a JSON UI document and extracts all bindings with their types, collections, paths, and warnings."
 	expandInheritanceToolName         = "expand_inheritance"
-	expandInheritanceToolDescription  = "Resolves @namespace.control inheritance syntax in a JSON UI document and returns flattened control definitions with merged properties."
+	expandInheritanceToolDescription  = "Expands static local @namespace.control inheritance. External namespaces, variables and modifications are not evaluated."
 )
 
 // New constructs the MCP server and registers all tools and resources.

@@ -1,5 +1,9 @@
 === LEAF BUTTON TEMPLATES REFERENCE ===
 
+Dependency notice: Leaf Essentials 4.3 / StarLib examples are pack-specific and have not been verified against an included copy of those packs. Their variables and textures are not engine APIs. Inspect the installed pack definitions before use.
+Source for vanilla templates: https://github.com/Mojang/bedrock-samples/tree/main/resource_pack/ui
+A control named third_party_server_screen in a custom namespace does not register a new screen; wire server_form to it explicitly.
+
 Based on Leaf Essentials 4.3 (ui_template_buttons.json + starlib2/package_button/)
 
 Standard Text Button:

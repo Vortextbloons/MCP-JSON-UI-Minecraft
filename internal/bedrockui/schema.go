@@ -1,8 +1,7 @@
 package bedrockui
 
 import (
-	"strconv"
-	"strings"
+	"encoding/json"
 )
 
 const SchemaURI = "bedrock://json-ui/schema.json"
@@ -20,12 +19,7 @@ const schemaTemplate = `{
       "description": "Required UI namespace for resource packs"
     }
   },
-  "patternProperties": {
-    "__ROOT_PATTERN__": {
-      "$ref": "#/$defs/element"
-    }
-  },
-  "additionalProperties": false,
+  "additionalProperties": {"$ref": "#/$defs/element"},
   "$defs": {
     "vector2": {
       "type": "array",
@@ -84,7 +78,16 @@ const schemaTemplate = `{
         "target_property_name": {"type": "string"},
         "resolve_sibling_scope": {"type": "boolean"}
       },
-      "required": ["binding_name"],
+      "allOf": [
+        {
+          "if": {"properties": {"binding_type": {"const": "view"}}, "required": ["binding_type"]},
+          "then": {"required": ["source_property_name", "target_property_name"]},
+          "else": {
+            "if": {"properties": {"binding_type": {"enum": ["collection_details", "none"]}}, "required": ["binding_type"]},
+            "else": {"required": ["binding_name"]}
+          }
+        }
+      ],
       "additionalProperties": true
     },
     "element": {
@@ -131,7 +134,12 @@ const schemaTemplate = `{
         "use_child_anchors": {"type": "boolean"},
         "controls": {
           "type": "array",
-          "items": {"$ref": "#/$defs/element"}
+          "items": {
+            "type": "object",
+            "minProperties": 1,
+            "maxProperties": 1,
+            "additionalProperties": {"$ref": "#/$defs/element"}
+          }
         },
         "bindings": {
           "type": "array",
@@ -169,8 +177,8 @@ const schemaTemplate = `{
         },
         "grid_item_template": {"type": "string"},
         "text": {"type": "string"},
-        "color": {"$ref": "#/$defs/vector4"},
-        "locked_color": {"$ref": "#/$defs/vector4"},
+        "color": {"type": ["array", "string"], "minItems": 3, "maxItems": 4, "items": {"type": "number"}},
+        "locked_color": {"type": ["array", "string"], "minItems": 3, "maxItems": 4, "items": {"type": "number"}},
         "shadow": {"type": "boolean"},
         "hide_hyphen": {"type": "boolean"},
         "notify_on_ellipses": {
@@ -332,59 +340,22 @@ const schemaTemplate = `{
 
 // SchemaSource returns the JSON Schema used by the validator.
 func SchemaSource() string {
-	return strings.ReplaceAll(schemaTemplate, "__ROOT_PATTERN__", rootElementPattern())
-}
-
-func rootElementPattern() string {
-	return identifierPatternExcept("namespace")
-}
-
-// identifierPatternExcept builds an identifier regex that excludes one exact key.
-// It keeps the root schema permissive for control names while reserving namespace.
-func identifierPatternExcept(exact string) string {
-	runes := []rune(exact)
-	parts := make([]string, 0, len(runes)+2)
-	fullClass := allowedClassAll()
-
-	if len(runes) > 1 {
-		parts = append(parts, fullClass+"{1,"+strconv.Itoa(len(runes)-1)+"}")
+	var schema map[string]any
+	if err := json.Unmarshal([]byte(schemaTemplate), &schema); err != nil {
+		panic(err)
 	}
-	parts = append(parts, fullClass+"{"+strconv.Itoa(len(runes)+1)+",}")
-
-	for i, r := range runes {
-		prefix := string(runes[:i])
-		suffixLen := len(runes) - i - 1
-		if suffixLen == 0 {
-			parts = append(parts, prefix+allowedClassExcept(r))
-			continue
-		}
-		parts = append(parts, prefix+allowedClassExcept(r)+fullClass+"{"+strconv.Itoa(suffixLen)+"}")
+	defs := schema["$defs"].(map[string]any)
+	element := defs["element"].(map[string]any)
+	properties := element["properties"].(map[string]any)
+	// JSON UI permits $variables and expressions in place of literal properties.
+	for name, literal := range properties {
+		properties[name] = map[string]any{"anyOf": []any{
+			literal, map[string]any{"type": "string", "pattern": `^(\$|\(|@)`},
+		}}
 	}
-
-	return "^(?:" + strings.Join(parts, "|") + ")$"
-}
-
-var allowedIdentifierRunes = []rune("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_.@")
-
-func allowedClassAll() string {
-	var b strings.Builder
-	b.WriteByte('[')
-	for _, r := range allowedIdentifierRunes {
-		b.WriteRune(r)
+	encoded, err := json.Marshal(schema)
+	if err != nil {
+		panic(err)
 	}
-	b.WriteByte(']')
-	return b.String()
-}
-
-func allowedClassExcept(excluded rune) string {
-	var b strings.Builder
-	b.WriteByte('[')
-	for _, r := range allowedIdentifierRunes {
-		if r == excluded {
-			continue
-		}
-		b.WriteRune(r)
-	}
-	b.WriteByte(']')
-	return b.String()
+	return string(encoded)
 }

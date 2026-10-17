@@ -5,20 +5,20 @@ import (
 	"fmt"
 	"strings"
 
-	mcp "github.com/metoro-io/mcp-golang"
 	"bedrock-json-ui-mcp/internal/bedrockui"
+	mcp "github.com/metoro-io/mcp-golang"
 )
 
 const validatePreface = `📚 Resources: bedrock://docs/ui_reference (quick) | bedrock://docs/json_ui_full_reference (full) | bedrock://docs/custom_json_ui_design (implementation guide)
 
 💡 Validation Hints:
   - Root namespace is required
-  - Container types (panel, stack_panel, grid, collection_panel) should include a controls array
-  - Bindings require binding_name; use binding_name_override to target element properties
-  - Animations belong in $definitions or referenced via anims array, not as root elements
-  - Factory props only work on factory elements, not grids or panels
-  - Use percentage-based sizing on root panels for cross-platform compatibility
-  - Interactive elements need higher layer than backgrounds for click registration`
+  - controls contains named child objects; empty and inherited containers are valid
+  - View bindings use source_property_name and target_property_name
+  - Collection-details bindings do not require binding_name
+  - Declare animations at the document root and reference them via anims or animated properties
+  - Collection containers can use a factory property
+  - This is a partial structural check; verify templates, bindings, and input behavior in Minecraft`
 
 // ValidateUIContractArgs defines the tool input payload.
 type ValidateUIContractArgs struct {
@@ -37,7 +37,7 @@ func validateUIContract(args ValidateUIContractArgs) (*mcp.ToolResponse, error) 
 	}
 
 	if len(errors) == 0 {
-		response.WriteString("✅ Success: UI code passes Bedrock schema and logic constraints.")
+		response.WriteString("✅ Success: UI code passes the local partial schema. Runtime behavior and external references are not verified.")
 		return mcp.NewToolResponse(mcp.NewTextContent(response.String())), nil
 	}
 
@@ -137,13 +137,13 @@ func generateActionForm(args GenerateActionFormArgs) (*mcp.ToolResponse, error) 
 		IconSupport:   args.IconSupport,
 		IncludeScroll: args.IncludeScroll,
 	})
-	return mcp.NewToolResponse(mcp.NewTextContent(jsonStr)), nil
+	return generatedFormResponse(jsonStr), nil
 }
 
 // --- Tool: generate_modal_form ---
 
 type GenerateModalFormArgs struct {
-	Namespace string                      `json:"namespace" jsonschema:"description=UI namespace to use (default: custom_ui)"`
+	Namespace string                       `json:"namespace" jsonschema:"description=UI namespace to use (default: custom_ui)"`
 	Controls  []bedrockui.ModalFormControl `json:"controls" jsonschema:"required,description=Array of modal form control definitions."`
 }
 
@@ -152,7 +152,7 @@ func generateModalForm(args GenerateModalFormArgs) (*mcp.ToolResponse, error) {
 		Namespace: args.Namespace,
 		Controls:  args.Controls,
 	})
-	return mcp.NewToolResponse(mcp.NewTextContent(jsonStr)), nil
+	return generatedFormResponse(jsonStr), nil
 }
 
 // --- Tool: generate_tabbed_form ---
@@ -167,7 +167,7 @@ func generateTabbedForm(args GenerateTabbedFormArgs) (*mcp.ToolResponse, error) 
 		Namespace: args.Namespace,
 		TabNames:  args.TabNames,
 	})
-	return mcp.NewToolResponse(mcp.NewTextContent(jsonStr)), nil
+	return generatedFormResponse(jsonStr), nil
 }
 
 // --- Tool: generate_grid_form ---
@@ -186,7 +186,7 @@ func generateGridForm(args GenerateGridFormArgs) (*mcp.ToolResponse, error) {
 		Rows:        args.Rows,
 		IconSupport: args.IconSupport,
 	})
-	return mcp.NewToolResponse(mcp.NewTextContent(jsonStr)), nil
+	return generatedFormResponse(jsonStr), nil
 }
 
 // --- Tool: cherry_theme_pack ---
@@ -251,4 +251,24 @@ func expandInheritance(args ExpandInheritanceArgs) (*mcp.ToolResponse, error) {
 	}
 	b, _ := json.MarshalIndent(result, "", "    ")
 	return mcp.NewToolResponse(mcp.NewTextContent(string(b))), nil
+}
+
+// generatedFormResponse keeps the layout JSON separate from installation guidance.
+func generatedFormResponse(raw string) *mcp.ToolResponse {
+	var doc struct {
+		Namespace string `json:"namespace"`
+	}
+	_ = json.Unmarshal([]byte(raw), &doc)
+	patch, _ := json.MarshalIndent(map[string]any{
+		"namespace":                 "server_form",
+		"third_party_server_screen": map[string]any{"$screen_content": doc.Namespace + ".main_content"},
+	}, "", "  ")
+	return mcp.NewToolResponse(mcp.NewTextContent(raw), mcp.NewTextContent(
+		"Installation: save the layout in resource_pack/ui and register its path in ui/_ui_defs.json. "+
+			"Merge this companion override into resource_pack/ui/server_form.json (namespace server_form), and register that file too:\n"+string(patch)+
+			"\nThis replaces the layout for all forms of the generated type. Add title-based routing to scope it. "+
+			"Keep a distinct custom namespace; do not use server_form as the generated namespace. "+
+			"Labels, values, options, defaults and form response handling must be defined in the behavior pack using server-ui. "+
+			"Tabbed output is a layout sketch requiring script-driven page selection; markers alone do not switch tabs. "+
+			"Verify inherited templates and behavior against your target game's vanilla files."))
 }

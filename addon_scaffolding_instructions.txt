@@ -1,0 +1,63 @@
+# Addon Scaffolding Instructions
+
+When scaffolding a new Minecraft Bedrock addon, ask the user the following question:
+
+## Build/Deploy Script Question
+
+"Would you like a build/deploy script? This copies your behavior_pack and resource_pack folders to your Minecraft Bedrock development directories."
+
+If the user answers **yes**, prompt for:
+1. **Minecraft development path** - The base path to Bedrock development folders (default: `C:/Users/<username>/AppData/Roaming/Minecraft Bedrock/Users/Shared/games/com.mojang`)
+2. **Behavior pack folder name** - Name of their BP folder in the project (default: `behavior_pack`)
+3. **Resource pack folder name** - Name of their RP folder in the project (default: `resource_pack`)
+4. **Behavior pack destination name** - Folder name for deployed BP (e.g., `MyAddon` or `MyAddon BP`)
+5. **Resource pack destination name** - Folder name for deployed RP (e.g., `MyAddon RP` or `MyAddon Resources`)
+
+## Deploy Script Template
+
+Generate a `deploy.cjs` file using this structure:
+
+```javascript
+const { cpSync, mkdirSync, rmSync } = require("fs");
+const { resolve } = require("path");
+
+const mcDev = "USER_SPECIFIED_DEV_PATH";
+const bpSrc = resolve(__dirname, "BP_FOLDER_NAME");
+const rpSrc = resolve(__dirname, "RP_FOLDER_NAME");
+const bpDest = `${mcDev}/development_behavior_packs/BP_DEST_NAME`;
+const rpDest = `${mcDev}/development_resource_packs/RP_DEST_NAME`;
+
+for (const [src, dest, name] of [[bpSrc, bpDest, "BP"], [rpSrc, rpDest, "RP"]]) {
+  rmSync(dest, { recursive: true, force: true });
+  mkdirSync(dest, { recursive: true });
+  cpSync(src, dest, { recursive: true, force: true });
+  console.log(`Deployed ${name}: ${dest}`);
+}
+```
+
+## File Structure for New Addon
+
+When scaffolding, create:
+```
+addon-name/
+├── behavior_pack/
+│   ├── manifest.json
+│   └── scripts/
+│   │   └── main.js
+├── resource_pack/
+│   ├── manifest.json
+│   ├── textures/
+│   │   └── (texture files)
+│   └── ui/
+│       ├── _ui_defs.json
+│       └── (custom UI files)
+├── package.json (optional, if deploy script needed)
+└── deploy.cjs (if user requested deploy script)
+```
+
+## Notes
+- JSON UI and _ui_defs.json belong only in resource_pack/ui; behavior_pack holds scripts.
+- Resolve source folders relative to this root-level deploy.cjs. Ask for the actual installation path rather than assuming one Windows layout.
+- Use the deploy script filename `deploy.cjs` since it uses CommonJS syntax
+- The script should be run with Node.js: `node deploy.cjs`
+- Always use `recursive: true` and `force: true` options for reliable copying

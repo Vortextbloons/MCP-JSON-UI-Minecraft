@@ -1,7 +1,21 @@
 === MINECRAFT BEDROCK JSON UI - FULL REFERENCE ===
 
-This document is a restructured compilation of the Minecraft Bedrock JSON UI engine documentation.
-Use this resource to author, validate, and iterate on Bedrock JSON UI files.
+This is a partial community reference, not an official or exhaustive engine schema.
+Use this resource as a starting point; check the target game version's vanilla files.
+Reviewed 2026-10-17 against:
+https://github.com/Mojang/bedrock-samples/blob/main/resource_pack/ui/server_form.json
+https://wiki.bedrock.dev/json-ui/json-ui-documentation
+https://wiki.bedrock.dev/json-ui/json-ui-intro
+
+Compatibility notes:
+- Named root animation definitions are valid; reference them with @namespace.name.
+- Empty containers are valid. A collection container may use a factory property.
+- View bindings use source/target properties; collection_details needs no binding_name.
+- controls is an array of single named objects whose values are control definitions.
+- Properties may use $variables and expressions; the local schema is only partial.
+- Hardcoded bindings, button IDs and collections are screen/context dependent.
+- Leaf, StarLib and Cherry conventions require the corresponding pack assets.
+- Historical item numeric IDs and platform flags below are not stable API contracts.
 
 ================================================================================
 1. ELEMENT TYPES
@@ -769,7 +783,7 @@ $store_disabled                     Store disabled
 11. ITEM ID AUX REFERENCE
 ================================================================================
 
-Item ID Aux formula: Aux = ID * 65536
+Legacy base formula (metadata 0): Aux = ID * 65536. Numeric IDs below are version-specific; verify them for the target version.
 
 Name                 ID      Aux Value
 ------------------- ------- -----------

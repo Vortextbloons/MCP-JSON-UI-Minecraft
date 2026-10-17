@@ -2,7 +2,6 @@ package bedrockui
 
 import (
 	"fmt"
-	"strings"
 	"testing"
 )
 
@@ -50,65 +49,30 @@ func TestValidateRootAtSyntax(t *testing.T) {
 	}
 }
 
-func TestValidateHints(t *testing.T) {
+func TestDocumentContracts(t *testing.T) {
 	tests := []struct {
-		name          string
-		input         string
-		wantHintCount int
-		wantContains  string
+		name, input string
+		pass        bool
 	}{
-		{
-			name:          "root animation object hint",
-			input:         `{"namespace":"test","pulse":{"anim_type":"alpha","duration":1}}`,
-			wantHintCount: 1,
-			wantContains:  "Root-level animation objects are not loaded",
-		},
-		{
-			name:          "panel missing controls hint",
-			input:         `{"namespace":"test","box":{"type":"panel","size":[10,10]}}`,
-			wantHintCount: 1,
-			wantContains:  "Container type 'panel' should include a 'controls' array",
-		},
-		{
-			name:          "factory prop on non-factory hint",
-			input:         `{"namespace":"test","grid":{"type":"grid","factory":{"name":"f","control_name":"c"}}}`,
-			wantHintCount: 2,
-			wantContains:  "'factory' property is only valid on elements with type 'factory'",
-		},
-		{
-			name:          "binding missing binding_name hint",
-			input:         `{"namespace":"test","btn":{"type":"button","controls":[{"lbl":{"type":"label","bindings":[{"binding_type":"view"}]}}]}}`,
-			wantHintCount: 1,
-			wantContains:  "binding is missing required 'binding_name'",
-		},
-		{
-			name:          "valid panel with controls passes",
-			input:         `{"namespace":"test","box":{"type":"panel","controls":[{"lbl":{"type":"label"}}]}}`,
-			wantHintCount: 0,
-			wantContains:  "",
-		},
+		{"root animation", `{"namespace":"test","pulse":{"anim_type":"alpha","duration":1},"box":{"type":"panel","anims":["@test.pulse"]}}`, true},
+		{"empty panel", `{"namespace":"test","box":{"type":"panel"}}`, true},
+		{"collection factory", `{"namespace":"test","list":{"type":"stack_panel","factory":{"name":"buttons","control_name":"test.button"}}}`, true},
+		{"view binding", `{"namespace":"test","box":{"type":"panel","bindings":[{"binding_type":"view","source_property_name":"#value","target_property_name":"#visible"}]}}`, true},
+		{"collection details", `{"namespace":"test","box":{"bindings":[{"binding_type":"collection_details","binding_collection_name":"form_buttons"}]}}`, true},
+		{"RGB label", `{"namespace":"test","label":{"type":"label","color":[1,1,1]}}`, true},
+		{"nested invalid binding", `{"namespace":"test","box":{"controls":[{"inner":{"controls":[{"label":{"bindings":[{"binding_type":"global"}]}}]}}]}}`, false},
+		{"nested invalid size", `{"namespace":"test","box":{"controls":[{"inner":{"size":[1]}}]}}`, false},
+		{"unnamed child", `{"namespace":"test","box":{"controls":[{"type":"label"}]}}`, false},
+		{"view missing target", `{"namespace":"test","box":{"bindings":[{"binding_type":"view","source_property_name":"#value"}]}}`, false},
 	}
-
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			errors, err := ValidateDocument(tt.input)
+			issues, err := ValidateDocument(tt.input)
 			if err != nil {
-				t.Fatalf("unexpected internal error: %v", err)
+				t.Fatal(err)
 			}
-			if len(errors) != tt.wantHintCount {
-				t.Errorf("expected %d hints, got %d: %v", tt.wantHintCount, len(errors), errors)
-			}
-			if tt.wantContains != "" {
-				found := false
-				for _, e := range errors {
-					if strings.Contains(e, tt.wantContains) {
-						found = true
-						break
-					}
-				}
-				if !found {
-					t.Errorf("expected hint containing %q, got %v", tt.wantContains, errors)
-				}
+			if (len(issues) == 0) != tt.pass {
+				t.Fatalf("pass=%v, issues=%v", tt.pass, issues)
 			}
 		})
 	}

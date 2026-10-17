@@ -9,21 +9,21 @@ import (
 // ActionFormParams configures action form generation.
 type ActionFormParams struct {
 	Namespace     string `json:"namespace"`
-	Variant       string `json:"variant"`        // default, fullscreen, grid, tabs, light
+	Variant       string `json:"variant"` // default, fullscreen, grid, tabs, light
 	IconSupport   bool   `json:"icon_support"`
 	IncludeScroll bool   `json:"include_scroll"`
 }
 
 // ModalFormControl defines a single modal form control.
 type ModalFormControl struct {
-	Type        string `json:"type"`        // label, toggle, slider, step_slider, dropdown, input
-	Label       string `json:"label"`
-	Placeholder string `json:"placeholder"` // for input
-	Default     any    `json:"default"`     // default value
-	Min         int    `json:"min"`         // for slider
-	Max         int    `json:"max"`         // for slider
-	Step        int    `json:"step"`        // for step_slider
-	Options     []string `json:"options"`   // for dropdown
+	Type        string   `json:"type"` // label, toggle, slider, step_slider, dropdown, input
+	Label       string   `json:"label"`
+	Placeholder string   `json:"placeholder"` // for input
+	Default     any      `json:"default"`     // default value
+	Min         int      `json:"min"`         // for slider
+	Max         int      `json:"max"`         // for slider
+	Step        int      `json:"step"`        // for step_slider
+	Options     []string `json:"options"`     // for dropdown
 }
 
 // ModalFormParams configures modal form generation.
@@ -48,19 +48,19 @@ type GridFormParams struct {
 
 // CherryThemePackParams configures cherry theme string packing/unpacking.
 type CherryThemePackParams struct {
-	Mode        string `json:"mode"` // "pack" or "unpack"
-	Title       string `json:"title"`
-	Header      string `json:"header"`
-	Border      string `json:"border"`
-	HButton     string `json:"h_button"`     // header button
-	DeButton    string `json:"de_button"`    // default button
-	DiButton    string `json:"di_button"`    // disabled button
-	HoButton    string `json:"ho_button"`    // hover button
-	Paperdoll   string `json:"paperdoll"`
+	Mode         string `json:"mode"` // "pack" or "unpack"
+	Title        string `json:"title"`
+	Header       string `json:"header"`
+	Border       string `json:"border"`
+	HButton      string `json:"h_button"`  // header button
+	DeButton     string `json:"de_button"` // default button
+	DiButton     string `json:"di_button"` // disabled button
+	HoButton     string `json:"ho_button"` // hover button
+	Paperdoll    string `json:"paperdoll"`
 	PackedString string `json:"packed_string"` // for unpack mode
 }
 
-// GenerateActionForm creates a complete action form JSON UI.
+// GenerateActionForm creates action form templates requiring server_form integration.
 func GenerateActionForm(p ActionFormParams) string {
 	if strings.TrimSpace(p.Namespace) == "" {
 		p.Namespace = "custom_ui"
@@ -75,162 +75,85 @@ func GenerateActionForm(p ActionFormParams) string {
 	case "fullscreen":
 		root = buildFullscreenForm(p)
 	case "grid":
-		root = buildGridForm(p)
+		return GenerateGridForm(GridFormParams{Namespace: p.Namespace, Columns: 3, Rows: 4, IconSupport: p.IconSupport})
 	case "tabs":
-		root = buildTabsForm(p)
+		return GenerateTabbedForm(TabbedFormParams{Namespace: p.Namespace, TabNames: []string{"Tab 1", "Tab 2", "Tab 3"}})
 	case "light":
 		root = buildLightForm(p)
 	default:
 		root = buildDefaultForm(p)
 	}
 
-	b, _ := json.MarshalIndent(root, "", "    ")
-	return string(b)
+	return marshalGeneratedForm(root)
 }
 
-// GenerateModalForm creates a complete modal form JSON UI.
+// GenerateModalForm creates modal widget templates; field data comes from server-ui.
 func GenerateModalForm(p ModalFormParams) string {
 	if strings.TrimSpace(p.Namespace) == "" {
 		p.Namespace = "custom_ui"
 	}
 
-	controlIDs := make(map[string]string)
-	for _, c := range p.Controls {
-		if c.Type == "step_slider" {
-			controlIDs["step_slider"] = fmt.Sprintf("@%s.custom_step_slider", p.Namespace)
-		} else {
-			controlIDs[c.Type] = fmt.Sprintf("@%s.custom_%s", p.Namespace, c.Type)
-		}
-	}
-
-	// Build custom control definitions
-	customControls := make(map[string]any)
-	for _, c := range p.Controls {
-		switch c.Type {
-		case "label":
-			customControls["custom_label"] = map[string]any{
-				"type": "label",
-				"text": "#custom_text",
-				"bindings": []map[string]any{
-					{"binding_name": "#custom_text", "binding_type": "collection", "binding_collection_name": "custom_form"},
-				},
-			}
-		case "toggle":
-			customControls["custom_toggle"] = map[string]any{
-				"type":        "toggle",
-				"toggle_name": "#custom_toggle",
-				"bindings": []map[string]any{
-					{"binding_name": "#custom_toggle_state", "binding_type": "collection", "binding_collection_name": "custom_form"},
-					{"binding_name": "#custom_toggle_enabled", "binding_type": "collection", "binding_collection_name": "custom_form"},
-				},
-			}
-		case "slider":
-			customControls["custom_slider"] = map[string]any{
-				"type":        "slider",
-				"slider_name": "#custom_slider",
-				"bindings": []map[string]any{
-					{"binding_name": "#custom_slider_value", "binding_type": "collection", "binding_collection_name": "custom_form"},
-					{"binding_name": "#custom_slider_enabled", "binding_type": "collection", "binding_collection_name": "custom_form"},
-				},
-			}
-		case "step_slider":
-			customControls["custom_step_slider"] = map[string]any{
-				"type":        "slider",
-				"slider_name": "#custom_step_slider",
-				"bindings": []map[string]any{
-					{"binding_name": "#custom_slider_step_value", "binding_type": "collection", "binding_collection_name": "custom_form"},
-					{"binding_name": "#custom_slider_enabled", "binding_type": "collection", "binding_collection_name": "custom_form"},
-				},
-			}
-		case "dropdown":
-			customControls["custom_dropdown"] = map[string]any{
-				"type":         "dropdown",
-				"dropdown_name": "#custom_dropdown",
-				"bindings": []map[string]any{
-					{"binding_name": "#custom_dropdown_length", "binding_type": "collection", "binding_collection_name": "custom_form"},
-				},
-			}
-		case "input":
-			customControls["custom_input"] = map[string]any{
-				"type": "edit_box",
-				"text_box_name": "#custom_input",
-				"bindings": []map[string]any{
-					{"binding_name": "#custom_input_text", "binding_type": "collection", "binding_collection_name": "custom_form"},
-					{"binding_name": "#custom_placeholder_text", "binding_type": "collection", "binding_collection_name": "custom_form"},
-				},
-			}
-		}
-	}
-
+	// Inherit the vanilla input widgets so their visuals, focus, and response wiring
+	// stay intact. Field data is supplied by ModalFormData, not these templates.
 	root := map[string]any{
 		"namespace": p.Namespace,
-		"third_party_server_screen@common.base_screen": map[string]any{
-			"$screen_content": fmt.Sprintf("%s.main_content", p.Namespace),
-			"button_mappings": []map[string]any{
-				{"from_button_id": "button.menu_cancel", "to_button_id": "button.menu_exit", "mapping_type": "global"},
-			},
+		"custom_form_screen@server_form.custom_form": map[string]any{
+			"$child_control": p.Namespace + ".custom_form_panel",
 		},
-		"main_content": map[string]any{
-			"type": "factory",
-			"control_ids": map[string]any{
-				"custom_form": fmt.Sprintf("@%s.custom_form_screen", p.Namespace),
-			},
+		"custom_form_panel@server_form.custom_form_panel": map[string]any{
+			"$scrolling_content": p.Namespace + ".custom_form_scrolling_content",
 		},
-		"custom_form_screen": map[string]any{
-			"type": "panel",
-			"size": []any{"100%", "100%"},
-			"controls": []map[string]any{
-				{
-					"form@common_dialogs.main_panel_no_buttons": map[string]any{
-						"size":                    []any{370, 240},
-						"$text_name":              "#title_text",
-						"$title_text_binding_type": "global",
-						"$child_control":          fmt.Sprintf("%s.generated_contents", p.Namespace),
-					},
-				},
-			},
-		},
-		"generated_contents": map[string]any{
-			"type":            "stack_panel",
-			"orientation":     "vertical",
-			"size":            []any{"100%", "100%c"},
-			"factory": map[string]any{
-				"name":        "buttons",
-				"control_ids": controlIDs,
-			},
-			"collection_name": "custom_form",
-			"bindings": []map[string]any{
-				{"binding_name": "#custom_form_length", "binding_name_override": "#collection_length"},
-			},
-		},
-		"submit_button@common_buttons.light_text_button": map[string]any{
-			"size":                    []any{"fill", 32},
-			"$pressed_button_name":    "button.submit_custom_form",
-			"$button_text":            "Submit",
+		"custom_form_scrolling_content@server_form.custom_form_scrolling_content": map[string]any{
+			"modifications": []any{map[string]any{
+				"array_name": "controls", "operation": "replace",
+				"control_name": "generated_form",
+				"value":        []any{map[string]any{"generated_form@" + p.Namespace + ".generated_contents": map[string]any{}}},
+			}},
 		},
 	}
-
-	for k, v := range customControls {
-		root[k] = v
+	ids := map[string]any{}
+	for _, kind := range []string{"label", "toggle", "slider", "step_slider", "dropdown", "input", "header", "divider", "multiselect"} {
+		parent := "server_form.custom_" + kind
+		if kind == "divider" {
+			parent = "settings_common.option_group_section_divider"
+		}
+		ids[kind] = "@" + parent
 	}
-
-	b, _ := json.MarshalIndent(root, "", "    ")
-	return string(b)
+	for _, c := range p.Controls {
+		if _, ok := ids[c.Type]; !ok {
+			continue
+		}
+		parent := strings.TrimPrefix(ids[c.Type].(string), "@")
+		root["custom_"+c.Type+"@"+parent] = map[string]any{}
+		ids[c.Type] = "@" + p.Namespace + ".custom_" + c.Type
+	}
+	root["generated_contents@server_form.generated_contents"] = map[string]any{
+		"factory": map[string]any{"name": "buttons", "control_ids": ids},
+	}
+	root["main_content"] = map[string]any{
+		"type": "panel",
+		"factory": map[string]any{
+			"name":        "server_form_factory",
+			"control_ids": map[string]any{"long_form": "@server_form.long_form", "custom_form": "@" + p.Namespace + ".custom_form_screen"},
+		},
+	}
+	return marshalGeneratedForm(root)
 }
 
-// GenerateTabbedForm creates a tabbed action form JSON UI.
+// GenerateTabbedForm creates a tabbed layout sketch; page selection requires script logic.
 func GenerateTabbedForm(p TabbedFormParams) string {
 	if strings.TrimSpace(p.Namespace) == "" {
 		p.Namespace = "custom_ui"
 	}
 
 	tabButtons := make([]map[string]any, 0, len(p.TabNames))
-	for _, name := range p.TabNames {
+	for i, name := range p.TabNames {
 		tabButtons = append(tabButtons, map[string]any{
-			"tab_btn@common_buttons.light_text_button": map[string]any{
+			fmt.Sprintf("tab_btn_%d@common_buttons.light_text_button", i): map[string]any{
 				"size":                 []any{"fill", 24},
 				"$pressed_button_name": "button.form_button_click",
 				"$button_text":         fmt.Sprintf("§t§a§b%s", name),
+				"collection_index":     i,
 				"bindings": []map[string]any{
 					{"binding_type": "collection_details", "binding_collection_name": "form_buttons"},
 				},
@@ -258,16 +181,16 @@ func GenerateTabbedForm(p TabbedFormParams) string {
 			"controls": []map[string]any{
 				{
 					"form@common_dialogs.main_panel_no_buttons": map[string]any{
-						"size":                    []any{370, 240},
-						"$text_name":              "#title_text",
+						"size":                     []any{370, 240},
+						"$text_name":               "#title_text",
 						"$title_text_binding_type": "global",
-						"$child_control":          fmt.Sprintf("%s.content_area", p.Namespace),
+						"$child_control":           fmt.Sprintf("%s.content_area", p.Namespace),
 					},
 				},
 			},
 		},
 		"content_area": map[string]any{
-			"type":        "panel",
+			"type":        "stack_panel",
 			"size":        []any{"100%", "100%"},
 			"orientation": "vertical",
 			"controls": []map[string]any{
@@ -281,12 +204,12 @@ func GenerateTabbedForm(p TabbedFormParams) string {
 				},
 				{
 					"scroll@common.scrolling_panel": map[string]any{
-						"size":                    []any{"100%", "100% - 28px"},
-						"$show_background":        false,
-						"$scrolling_content":      fmt.Sprintf("%s.button_list", p.Namespace),
-						"$scroll_size":            []any{5, "100% - 4px"},
-						"$scrolling_pane_size":    []any{"100% - 4px", "100% - 2px"},
-						"$scrolling_pane_offset":  []any{2, 0},
+						"size":                   []any{"100%", "100% - 28px"},
+						"$show_background":       false,
+						"$scrolling_content":     fmt.Sprintf("%s.button_list", p.Namespace),
+						"$scroll_size":           []any{5, "100% - 4px"},
+						"$scrolling_pane_size":   []any{"100% - 4px", "100% - 2px"},
+						"$scrolling_pane_offset": []any{2, 0},
 					},
 				},
 			},
@@ -311,10 +234,10 @@ func GenerateTabbedForm(p TabbedFormParams) string {
 			"controls": []map[string]any{
 				{
 					"form_button@common_buttons.light_text_button": map[string]any{
-						"size":                    []any{"fill", 32},
-						"$pressed_button_name":    "button.form_button_click",
-						"$button_text":            "#form_button_text",
-						"$button_text_binding_type": "collection",
+						"size":                              []any{"fill", 32},
+						"$pressed_button_name":              "button.form_button_click",
+						"$button_text":                      "#form_button_text",
+						"$button_text_binding_type":         "collection",
 						"$button_text_grid_collection_name": "form_buttons",
 						"bindings": []map[string]any{
 							{"binding_type": "collection_details", "binding_collection_name": "form_buttons"},
@@ -325,8 +248,7 @@ func GenerateTabbedForm(p TabbedFormParams) string {
 		},
 	}
 
-	b, _ := json.MarshalIndent(root, "", "    ")
-	return string(b)
+	return marshalGeneratedForm(root)
 }
 
 // GenerateGridForm creates a grid-based action form JSON UI.
@@ -361,18 +283,18 @@ func GenerateGridForm(p GridFormParams) string {
 			"controls": []map[string]any{
 				{
 					"form@common_dialogs.main_panel_no_buttons": map[string]any{
-						"size":                    []any{370, 240},
-						"$text_name":              "#title_text",
+						"size":                     []any{370, 240},
+						"$text_name":               "#title_text",
 						"$title_text_binding_type": "global",
-						"$child_control":          fmt.Sprintf("%s.grid_area", p.Namespace),
+						"$child_control":           fmt.Sprintf("%s.grid_area", p.Namespace),
 					},
 				},
 			},
 		},
 		"grid_area": map[string]any{
-			"type": "grid",
-			"grid_dimensions": []any{p.Columns, p.Rows},
-			"grid_item_template": fmt.Sprintf("%s.dynamic_button", p.Namespace),
+			"type":                "grid",
+			"grid_dimensions":     []any{p.Columns, p.Rows},
+			"grid_item_template":  fmt.Sprintf("%s.dynamic_button", p.Namespace),
 			"grid_rescaling_type": "horizontal",
 			"factory": map[string]any{
 				"name":         "buttons",
@@ -386,8 +308,7 @@ func GenerateGridForm(p GridFormParams) string {
 		"dynamic_button": buildDynamicButton(p.Namespace, p.IconSupport),
 	}
 
-	b, _ := json.MarshalIndent(root, "", "    ")
-	return string(b)
+	return marshalGeneratedForm(root)
 }
 
 // CherryThemePack packs or unpacks a Cherry UI theme string.
@@ -501,18 +422,18 @@ func buildStandardForm(p ActionFormParams, variant string) any {
 			"controls": []map[string]any{
 				{
 					"form@common_dialogs.main_panel_no_buttons": map[string]any{
-						"size":                    []any{370, 200},
-						"$text_name":              "#title_text",
+						"size":                     []any{370, 200},
+						"$text_name":               "#title_text",
 						"$title_text_binding_type": "global",
-						"$child_control":          fmt.Sprintf("%s.button_panel", p.Namespace),
+						"$child_control":           fmt.Sprintf("%s.button_panel", p.Namespace),
 					},
 				},
 			},
 		},
 		"button_panel": map[string]any{
-			"type":        "panel",
-			"size":        []any{"100%", "100%"},
-			"controls":    buildButtonPanelControls(p),
+			"type":     "panel",
+			"size":     []any{"100%", "100%"},
+			"controls": buildButtonPanelControls(p),
 		},
 		"button_list": map[string]any{
 			"type":        "stack_panel",
@@ -544,12 +465,12 @@ func buildButtonPanelControls(p ActionFormParams) []map[string]any {
 		return []map[string]any{
 			{
 				"scroll@common.scrolling_panel": map[string]any{
-					"size":                    []any{"100%", "100%"},
-					"$show_background":        false,
-					"$scrolling_content":      fmt.Sprintf("%s.button_list", p.Namespace),
-					"$scroll_size":            []any{5, "100% - 4px"},
-					"$scrolling_pane_size":    []any{"100% - 4px", "100% - 2px"},
-					"$scrolling_pane_offset":  []any{2, 0},
+					"size":                   []any{"100%", "100%"},
+					"$show_background":       false,
+					"$scrolling_content":     fmt.Sprintf("%s.button_list", p.Namespace),
+					"$scroll_size":           []any{5, "100% - 4px"},
+					"$scrolling_pane_size":   []any{"100% - 4px", "100% - 2px"},
+					"$scrolling_pane_offset": []any{2, 0},
 				},
 			},
 		}
@@ -570,10 +491,10 @@ func buildDynamicButton(namespace string, iconSupport bool) any {
 			"controls": []map[string]any{
 				{
 					"form_button@common_buttons.light_text_button": map[string]any{
-						"size":                    []any{"fill", 32},
-						"$pressed_button_name":    "button.form_button_click",
-						"$button_text":            "#form_button_text",
-						"$button_text_binding_type": "collection",
+						"size":                              []any{"fill", 32},
+						"$pressed_button_name":              "button.form_button_click",
+						"$button_text":                      "#form_button_text",
+						"$button_text_binding_type":         "collection",
 						"$button_text_grid_collection_name": "form_buttons",
 						"bindings": []map[string]any{
 							{"binding_type": "collection_details", "binding_collection_name": "form_buttons"},
@@ -609,10 +530,10 @@ func buildDynamicButton(namespace string, iconSupport bool) any {
 			},
 			{
 				"form_button@common_buttons.light_text_button": map[string]any{
-					"size":                    []any{"fill", 32},
-					"$pressed_button_name":    "button.form_button_click",
-					"$button_text":            "#form_button_text",
-					"$button_text_binding_type": "collection",
+					"size":                              []any{"fill", 32},
+					"$pressed_button_name":              "button.form_button_click",
+					"$button_text":                      "#form_button_text",
+					"$button_text_binding_type":         "collection",
 					"$button_text_grid_collection_name": "form_buttons",
 					"bindings": []map[string]any{
 						{"binding_type": "collection_details", "binding_collection_name": "form_buttons"},
@@ -623,18 +544,23 @@ func buildDynamicButton(namespace string, iconSupport bool) any {
 	}
 }
 
-func buildGridForm(p ActionFormParams) any {
-	return GenerateGridForm(GridFormParams{
-		Namespace:   p.Namespace,
-		Columns:     3,
-		Rows:        4,
-		IconSupport: p.IconSupport,
-	})
-}
-
-func buildTabsForm(p ActionFormParams) any {
-	return GenerateTabbedForm(TabbedFormParams{
-		Namespace: p.Namespace,
-		TabNames:  []string{"Tab 1", "Tab 2", "Tab 3"},
-	})
+// marshalGeneratedForm emits a document of templates. The caller must wire
+// server_form.third_party_server_screen to this namespace's main_content.
+func marshalGeneratedForm(root any) string {
+	if doc, ok := root.(map[string]any); ok {
+		if content, ok := doc["main_content"].(map[string]any); ok && content["type"] == "factory" {
+			ids := content["control_ids"].(map[string]any)
+			if _, ok := ids["long_form"]; !ok {
+				ids["long_form"] = "@server_form.long_form"
+			}
+			if _, ok := ids["custom_form"]; !ok {
+				ids["custom_form"] = "@server_form.custom_form"
+			}
+			doc["main_content"] = map[string]any{"type": "panel", "factory": map[string]any{
+				"name": "server_form_factory", "control_ids": ids,
+			}}
+		}
+	}
+	b, _ := json.MarshalIndent(root, "", "    ")
+	return string(b)
 }
