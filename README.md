@@ -7,7 +7,7 @@ Summary: Bedrock has no first-class custom UI API. This server teaches the worka
 - Module: `bedrock-json-ui-mcp` (`go.mod`, Go 1.26.2)
 - Entry: `main.go` -> `internal/app/app.go:11` (`app.Run()` blocks on SIGINT/SIGTERM)
 - Transport: stdio via `github.com/metoro-io/mcp-golang` (`internal/mcpserver/server.go:56`)
-- Server name/version: `minecraft-bedrock-json-ui` / `2.0.0`
+- Server name/version: `minecraft-bedrock-json-ui` / `1.3`
 - Validation: `github.com/santhosh-tekuri/jsonschema/v5` against embedded schema (`internal/bedrockui/validator.go`, `schema.go`)
 
 ## Server Form Hijack (core pattern)

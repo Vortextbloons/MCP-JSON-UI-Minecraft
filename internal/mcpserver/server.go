@@ -8,7 +8,7 @@ import (
 
 const (
 	serverName    = "minecraft-bedrock-json-ui"
-	serverVersion = "2.0.0"
+	serverVersion = "1.3"
 	serverBlurb   = "Read bedrock://docs/ui_reference (quick), bedrock://docs/json_ui_full_reference (full), bedrock://docs/custom_json_ui_design (implementation guide), bedrock://docs/leaf_button_templates, bedrock://docs/leaf_dialog_layouts, bedrock://docs/binding_patterns, or bedrock://docs/custom_form_controls before authoring JSON UI. Validate each draft with validate_ui_contract, generate forms with generate_action_form/generate_modal_form/generate_tabbed_form/generate_grid_form, analyze bindings with analyze_bindings, expand inheritance with expand_inheritance, and pack Cherry UI themes with cherry_theme_pack."
 )
 
